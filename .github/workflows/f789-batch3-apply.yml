@@ -11,9 +11,6 @@ on:
 permissions:
   contents: write
 
-env:
-  KNOWN_GOOD_INDEX: 37d5262b739c2b05b4c0da83e3d1fe09215afc18
-
 jobs:
   apply:
     runs-on: ubuntu-latest
@@ -36,13 +33,4 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           git commit -m 'Implement verified F-789SGA Batch 3 mappings and conversions'
-          git push
-      - name: Roll back failed Batch 3
-        if: failure()
-        run: |
-          git checkout "$KNOWN_GOOD_INDEX" -- index.html
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html
-          git commit -m 'Rollback unverified F-789SGA Batch 3'
           git push
