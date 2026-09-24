@@ -6,6 +6,7 @@ on:
     paths:
       - 'index.html'
       - 'tools/f789_patch.py'
+      - 'tools/test_f789.mjs'
       - '.github/workflows/f789-batch-repair.yml'
   workflow_dispatch:
 
@@ -35,6 +36,9 @@ jobs:
           print('Extracted inline JS:', len(scripts[-1]), 'bytes')
           PY
           node --check /tmp/f789.js
+
+      - name: Runtime smoke tests for checked functions
+        run: node tools/test_f789.mjs
 
       - name: Commit repaired emulator
         run: |
