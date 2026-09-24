@@ -18,14 +18,15 @@ jobs:
   apply:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout full history
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Apply idempotent Batch 2 patch
         run: python tools/f789_batch2_patch.py
 
       - name: Run Batch 2 runtime regression tests
-        id: tests
         run: node tools/test_f789_batch2.mjs
 
       - name: Commit verified Batch 2
