@@ -1,0 +1,122 @@
+name: F-789SGA batch repair
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - .github/workflows/f789-batch-repair.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Apply checked key-mapping fixes
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p = Path("index.html")
+          s = p.read_text(encoding="utf-8")
+
+          # The physical F-789SGA uses these orange secondary functions on
+          # the ×, ÷, + and − keys. The existing pressButton() already routes
+          # data-shift to doShift(), so these attributes are the missing map.
+          replacements = {
+              'data-v="×"': 'data-v="×" data-shift="npr"',
+              'data-v="÷"': 'data-v="÷" data-shift="ncr"',
+              'data-v="+"': 'data-v="+" data-shift="pol"',
+              'data-v="−"': 'data-v="−" data-shift="rec"',
+          }
+          # Only patch the numeric keypad instances, not the scientific ÷/−
+          # buttons, by requiring the corresponding secondary label nearby.
+          for old, new in replacements.items():
+              pattern = re.escape(old) + r'(\s*><span class="sub o">(?:nPr|nCr|Pol\(|Rec\())'
+              if re.search(pattern, s):
+                  s = re.sub(pattern, new + r'\1', s, count=1)
+
+          # EXP is an exponent-entry key. Its normal token must be E so the
+          # existing evaluator's E->e transform can evaluate 2E3 as 2000.
+          # Alpha+EXP remains e because pressButton() consumes data-alpha first.
+          s = re.sub(r'data-v="e" data-shift="sum"', 'data-v="E" data-shift="sum"', s, count=1)
+          s = re.sub(r'data-v="e" data-shift="pi" data-alpha="e"', 'data-v="E" data-shift="pi" data-alpha="e"', s, count=1)
+
+          marker = "/* F789 BATCH: checked secondary-key routing */"
+          if marker not in s:
+              # doShift/add are inside the main calculator IIFE. This wrapper
+              # is deliberately inserted before that IIFE closes, so it can
+              # use the existing add() and preserve every already-implemented
+              # Shift action by delegating unknown actions to the old function.
+              wrapper = r'''
+
+/* F789 BATCH: checked secondary-key routing */
+(function(){
+  const __f789OldDoShift = doShift;
+  doShift = function(action){
+    if(action === "npr"){ add("nPr("); return; }
+    if(action === "ncr"){ add("nCr("); return; }
+    if(action === "pol"){ add("Pol("); return; }
+    if(action === "rec"){ add("Rec("); return; }
+    return __f789OldDoShift(action);
+  };
+})();
+'''
+              pos = s.rfind("\n})();")
+              if pos < 0:
+                  raise SystemExit("Could not locate calculator IIFE terminator")
+              s = s[:pos] + wrapper + s[pos:]
+
+          p.write_text(s, encoding="utf-8")
+
+      - name: Static smoke checks
+        shell: python
+        run: |
+          from pathlib import Path
+          import re, subprocess, tempfile
+          s = Path("index.html").read_text(encoding="utf-8")
+          required = [
+              'data-shift="npr"',
+              'data-shift="ncr"',
+              'data-shift="pol"',
+              'data-shift="rec"',
+              'data-v="E" data-shift="sum"',
+              'data-v="E" data-shift="pi" data-alpha="e"',
+              'if(action === "npr")',
+              'if(action === "ncr")',
+              'if(action === "pol")',
+              'if(action === "rec")',
+          ]
+          missing = [x for x in required if x not in s]
+          if missing:
+              raise SystemExit("Missing required batch patch: " + ", ".join(missing))
+          scripts = re.findall(r'<script[^>]*>(.*?)</script>', s, flags=re.S|re.I)
+          if not scripts:
+              raise SystemExit("No inline calculator script found")
+          # Syntax-check each inline script without executing browser APIs.
+          for i, js in enumerate(scripts):
+              f = Path(tempfile.gettempdir()) / f"f789-script-{i}.js"
+              f.write_text(js, encoding="utf-8")
+              r = subprocess.run(["node", "--check", str(f)], text=True, capture_output=True)
+              if r.returncode:
+                  print(r.stderr)
+                  raise SystemExit(f"JavaScript syntax check failed for script {i}")
+          print("F-789SGA batch smoke checks passed")
+
+      - name: Commit repaired batch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No changes required."
+            exit 0
+          fi
+          git add index.html
+          git commit -m "Fix F-789SGA secondary key mappings"
+          git push
