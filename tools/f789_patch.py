@@ -14,9 +14,10 @@ replacements = {
 }
 
 for old, new in replacements.items():
-    if old not in s:
-        raise SystemExit(f'missing expected markup: {old}')
-    s = s.replace(old, new, 1)
+    if old in s:
+        s = s.replace(old, new, 1)
+    elif new not in s:
+        raise SystemExit(f'missing expected markup and patched form: {old}')
 
 old = '''function pressButton(b){
  const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
@@ -31,25 +32,26 @@ new = '''function pressButton(b){
    shift=false;render();
  }
  const a=b.dataset.action;'''
-if old not in s:
-    raise SystemExit('missing expected pressButton block')
-s = s.replace(old, new, 1)
+if old in s:
+    s = s.replace(old, new, 1)
+elif new not in s:
+    raise SystemExit('missing expected pressButton block and patched form')
 
 old = 'else if(a==="hyp")add(shift?"cosh(":"sinh(");else if(a==="sin")add("sin(");'
 new = 'else if(a==="hyp")add("sinh(");else if(a==="sin")add("sin(");'
-if old not in s:
-    raise SystemExit('missing expected hyp mapping')
-s = s.replace(old, new, 1)
+if old in s:
+    s = s.replace(old, new, 1)
+elif new not in s:
+    raise SystemExit('missing expected hyp mapping and patched form')
 
 old = 'else if(action==="fraction")$("result").textContent=fraction(ans);else if(action==="mminus")'
 new = 'else if(action==="fraction")$("result").textContent=fraction(ans);else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="mminus")'
-if old not in s:
-    raise SystemExit('missing expected doShift anchor')
-s = s.replace(old, new, 1)
+if old in s:
+    s = s.replace(old, new, 1)
 
-# Remove only the redundant duplicate x!/percent tail cases.
+# Remove only the redundant duplicate x!/percent tail cases if still present.
 s = s.replace('else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="," )add(",");',
               'else if(action==="," )add(",");', 1)
 
 p.write_text(s, encoding='utf-8')
-print('F-789SGA patch applied:', p)
+print('F-789SGA Batch 1 patch is applied/idempotent')
