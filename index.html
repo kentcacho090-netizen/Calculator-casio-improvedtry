@@ -13,10 +13,10 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 .lcd{height:102px;margin:2px 5px 7px;background:#dce6d7;border:5px solid #111;border-radius:8px;padding:5px 8px;font-family:monospace;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
 .status{height:14px;font-size:10px;white-space:nowrap}.expr{height:25px;text-align:right;white-space:nowrap;overflow:hidden}.result{height:28px;text-align:right;font-size:22px;white-space:nowrap;overflow:hidden}
 .controls{height:104px;position:relative;margin:0 3px}.k{position:relative;border:2px solid #222;border-radius:7px;background:linear-gradient(#fdfdfb,#e5e5df);color:#171717;font-weight:700;box-shadow:0 2px 2px #0005;touch-action:manipulation;cursor:pointer}.k:active{transform:scale(.96);filter:brightness(.9)}
-.sub{position:absolute;top:-15px;left:1px;right:1px;font-size:8px;text-align:center;white-space:nowrap;overflow:visible;line-height:10px;font-weight:700;z-index:3}.o{color:#e5a027}.b{color:#55a8dc}.g{color:#58a05d}.red{color:#d13b36}
+.sub{position:absolute;top:-14px;left:1px;right:1px;font-size:8px;text-align:center;white-space:nowrap;overflow:visible;line-height:10px;font-weight:700;z-index:3}.o{color:#e5a027}.b{color:#55a8dc}.g{color:#58a05d}.red{color:#d13b36}
 .dark{background:#3b3e3d;color:#fff}.shift,.alpha{background:#222;color:#fff}.shift{color:#e5a027}.alpha{color:#55a8dc}.blankkey{font-size:0}.nav{background:#35393c;color:#fff;border-radius:50%;font-size:16px}.activeS{box-shadow:inset 0 0 0 2px #e5a027,0 0 8px #e5a02788}.activeA{box-shadow:inset 0 0 0 2px #55a8dc,0 0 8px #55a8dc88}
-.ctrl{position:absolute;width:18.5%;height:40px}.c1{left:0;top:0}.c2{left:20.5%;top:0}.c3{left:41%;top:0}.c4{right:20.5%;top:0}.c5{right:0;top:0}.apps{left:0;top:48px}.left{left:31%;top:40px}.right{left:51%;top:40px}.down{left:41%;top:59px}.convt{right:0;top:48px}
-.grid6{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:18px 3px 7px}.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:6px 3px}.fn{height:43px;font-size:11px;padding:12px 1px 2px;background:linear-gradient(#f7f7f3,#d7d8d4)}.num{height:46px;font-size:19px;padding-top:11px;background:linear-gradient(#fafaf7,#deded9)}.op{font-size:18px}
+.ctrl{position:absolute;width:16%;height:40px}.c1{left:0;top:0}.c2{left:18.5%;top:0}.c3{left:42%;top:0}.c4{right:16%;top:0}.c5{right:0;top:0}.apps{left:0;top:48px}.left{left:31%;top:40px}.right{left:51%;top:40px}.down{left:42%;top:59px}.convt{right:0;top:48px}
+.grid6{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:19px 3px 7px}.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:15px 3px 8px}.fn{height:43px;font-size:11px;padding:12px 1px 2px;background:linear-gradient(#f7f7f3,#d7d8d4)}.num{height:46px;font-size:19px;padding-top:11px;background:linear-gradient(#fafaf7,#deded9)}.op{font-size:18px}
 .overlay{position:absolute;inset:0;background:#111b;backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:20px;border-radius:19px;z-index:20}.overlay.show{display:flex}.panel{width:86%;background:#e8e9e3;border:2px solid #666;border-radius:10px;padding:11px;box-shadow:0 10px 30px #0009}.panel h3{margin:0 0 8px;font-size:14px}.choice{display:block;width:100%;padding:9px;margin:3px 0;border:1px solid #888;border-radius:5px;background:#f5f5ef;text-align:left;font-weight:700}.cancel{width:100%;padding:8px;margin-top:5px;border:0;border-radius:5px;background:#4b4f51;color:#fff;font-weight:700}
 </style>
 </head>
@@ -56,22 +56,22 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 <button class="k fn" data-action="cos" data-shift="acos" data-alpha="E"><span class="sub o">cos⁻¹</span><span class="sub b" style="top:-5px">E</span>cos</button>
 <button class="k fn" data-action="tan" data-shift="atan" data-alpha="F"><span class="sub o">tan⁻¹</span><span class="sub b" style="top:-5px">F</span>tan</button>
 <button class="k fn" data-action="rcl"><span class="sub o">STO</span>RCL</button>
-<button class="k fn" data-action="abs"><span class="sub o">%</span><span class="sub b" style="top:-5px">%</span>Abs</button>
+<button class="k fn" data-action="abs"><span class="sub o">%</span>Abs</button>
 </div>
 <div class="grid6">
 <button class="k fn" data-v="("><span class="sub o">%</span>(</button>
 <button class="k fn" data-v=")" data-shift=", " data-alpha="X"><span class="sub o">,</span><span class="sub b" style="top:-5px">X</span>)</button>
 <button class="k fn" data-action="fraction" data-shift="fraction"><span class="sub o">a b/c↔d/c</span><span class="sub b" style="top:-5px">Y</span>F↔D</button>
 <button class="k fn" data-action="mplus" data-shift="mminus" data-alpha="M"><span class="sub o">M−</span><span class="sub b" style="top:-5px">M</span>M+</button>
-<button class="k fn" data-v="e" data-shift="sum"><span class="sub b">Σ</span>EXP</button>
+<button class="k fn" data-v="e" data-shift="sum"><span class="sub g">Σ</span>EXP</button>
 <button class="k fn" id="ansTop" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button>
 </div>
 <div class="grid5">
 <button class="k num" data-v="7">7</button><button class="k num" data-v="8">8</button><button class="k num" data-v="9">9</button><button class="k num" id="del"><span class="sub o">CLR</span>DEL</button><button class="k num red" id="ca"><span class="sub o">OFF</span>CA</button>
 </div>
-<div class="grid5"><button class="k num" data-v="4">4</button><button class="k num" data-v="5">5</button><button class="k num" data-v="6">6</button><button class="k num op" data-v="×">×</button><button class="k num op" data-v="÷">÷</button></div>
-<div class="grid5"><button class="k num" data-v="1">1</button><button class="k num" data-v="2">2</button><button class="k num" data-v="3">3</button><button class="k num op" data-v="+">+</button><button class="k num op" data-v="−">−</button></div>
-<div class="grid5"><button class="k num" data-v="0" data-shift="round">0</button><button class="k num" data-v="." data-shift="rand"><span class="sub o">Rand i-Rand</span>.</button><button class="k num" data-v="e" data-shift="pi" data-alpha="e"><span class="sub o">π</span><span class="sub b">e</span>EXP</button><button class="k num" id="ans" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button><button class="k num op" id="equals">=</button></div>
+<div class="grid5"><button class="k num" data-v="4">4</button><button class="k num" data-v="5">5</button><button class="k num" data-v="6">6</button><button class="k num op" data-v="×"><span class="sub o">nPr</span>×</button><button class="k num op" data-v="÷"><span class="sub o">nCr</span>÷</button></div>
+<div class="grid5"><button class="k num" data-v="1">1</button><button class="k num" data-v="2">2</button><button class="k num" data-v="3">3</button><button class="k num op" data-v="+"><span class="sub o">Pol(</span>+</button><button class="k num op" data-v="−"><span class="sub o">Rec(</span>−</button></div>
+<div class="grid5"><button class="k num" data-v="0" data-shift="round"><span class="sub o">ROUND</span>0</button><button class="k num" data-v="." data-shift="rand"><span class="sub o">Rand i-Rand</span>.</button><button class="k num" data-v="e" data-shift="pi" data-alpha="e"><span class="sub o">π</span><span class="sub b" style="top:-5px">e</span>EXP</button><button class="k num" id="ans" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button><button class="k num op" id="equals">=</button></div>
 <div class="overlay" id="overlay"><div class="panel"><h3 id="title">MODE</h3><div id="choices"></div><button class="cancel" id="cancel">CANCEL</button></div></div>
 </div>
 <script>
