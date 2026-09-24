@@ -22,7 +22,7 @@ const assertEq = (actual, expected, label) => {
 console.log('2-key handler:', typeof document.querySelector('[data-v="2"]')?.onclick);
 console.log('equals handler:', typeof document.getElementById('equals')?.onclick);
 
-// Basic arithmetic: verify the expression itself before evaluating 2 + 3.
+// Basic arithmetic: 2 + 3 = 5.
 click('[data-v="2"]', '2');
 click('[data-v="+"]', '+');
 click('[data-v="3"]', '3');
@@ -31,11 +31,11 @@ document.getElementById('equals').click();
 console.log('Basic result after equals:', JSON.stringify(result()));
 assertEq(result(), '5', 'basic 2+3');
 
-// Shift x!: 5! = 120.
+// Shift x!: enter the operand first, then press SHIFT x^-1. 5! = 120.
 document.getElementById('on').click();
+click('[data-v="5"]', '5');
 document.getElementById('shift').click();
 click('[data-action="inv"]', 'x^-1 / x!');
-click('[data-v="5"]', '5');
 document.getElementById('equals').click();
 assertEq(result(), '120', 'Shift x!');
 
