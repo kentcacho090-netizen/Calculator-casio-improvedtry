@@ -1,81 +1,97 @@
 from pathlib import Path
 import re
 
-# Batch 1: repair only already-present Shift dispatch and the existing key-input
-# path. Do not add a new calculator feature until these basic mappings are valid.
+# Batch 4: Base-n physical-key layer. This patch deliberately changes only the
+# existing DEC/HEX/BIN/OCT keys and the calculator's calculation path when the
+# user is in BASE mode. It preserves the physical keypad and all earlier fixes.
 p = Path('index.html')
 s = p.read_text(encoding='utf-8')
 
-# Make Shift mappings idempotently, without depending on the exact span layout.
-def ensure_action_shift(action, shift_value):
-    pat = re.compile(r'(<button\b(?=[^>]*\bdata-action="' + re.escape(action) + r'")[^>]*)(>)')
-    def repl(m):
-        tag = m.group(1)
-        if 'data-shift=' in tag:
+# Tag the four physical radix keys without changing their visible labels.
+for marker, radix in [('class="sub g">DEC', 'DEC'), ('class="sub g">HEX', 'HEX'), ('class="sub g">BIN', 'BIN'), ('class="sub g">OCT', 'OCT')]:
+    pat = re.compile(r'(<button\\b(?=[^>]*' + re.escape(marker) + r')[^>]*)(>)')
+    def repl(m, radix=radix):
+        tag=m.group(1)
+        if 'data-base=' in tag:
             return m.group(0)
-        return tag + f' data-shift="{shift_value}"' + m.group(2)
-    out, n = pat.subn(repl, s, count=1)
+        return tag + f' data-base="{radix}"' + m.group(2)
+    s, n = pat.subn(repl, s, count=1)
     if n == 0:
-        raise SystemExit(f'missing expected data-action button: {action}')
-    return out
+        raise SystemExit(f'missing physical {radix} key')
 
-for action, shift_value in [('inv','x!'), ('abs','percent'), ('sin','asin'), ('cos','acos'), ('tan','atan')]:
-    s = ensure_action_shift(action, shift_value)
-
-# The first parenthesis key is the physical Shift-percent key.
-paren = re.compile(r'(<button\b(?=[^>]*\bdata-v="\(")[^>]*)(>)')
-def paren_repl(m):
-    tag = m.group(1)
-    if 'data-shift=' in tag:
-        return m.group(0)
-    return tag + ' data-shift="percent"' + m.group(2)
-s, n = paren.subn(paren_repl, s, count=1)
-if n == 0:
-    raise SystemExit('missing expected opening-parenthesis key')
-
-old = '''function pressButton(b){
- const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
- if(alpha && alphaVal!==undefined){add(alphaVal);alpha=false;render();return}
- if(shift && shiftVal!==undefined){shift=false;doShift(shiftVal);render();return}
- const a=b.dataset.action;'''
-new = '''function pressButton(b){
- const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
- if(alpha && alphaVal!==undefined){add(alphaVal);alpha=false;render();return}
- if(shift){
-   if(shiftVal!==undefined){const sv=shiftVal;shift=false;doShift(sv);render();return}
-   shift=false;render();
- }
- const a=b.dataset.action;'''
+# Add BASE state alongside the existing mode/angle state.
+old = 'let expr="",ans=0,memory=0,shift=false,alpha=false,mode="COMP",angle="DEG",io="MATH",display="NORM1",fractionMode="d/c",history=[],histPos=-1;'
+new = 'let expr="",ans=0,memory=0,shift=false,alpha=false,mode="COMP",angle="DEG",io="MATH",display="NORM1",fractionMode="d/c",history=[],histPos=-1,baseMode="DEC";'
 if old in s:
-    s = s.replace(old, new, 1)
-elif new not in s:
-    raise SystemExit('missing expected pressButton block and patched form')
+    s=s.replace(old,new,1)
+elif 'baseMode="DEC"' not in s:
+    raise SystemExit('missing calculator state anchor')
 
-old = 'else if(a==="hyp")add(shift?"cosh(":"sinh(");else if(a==="sin")add("sin(");'
-new = 'else if(a==="hyp")add("sinh(");else if(a==="sin")add("sin(");'
-if old in s:
-    s = s.replace(old, new, 1)
-elif new not in s:
-    raise SystemExit('missing expected hyp mapping and patched form')
+# BASE mode status indicator: show the selected radix like the real calculator.
+old = '$("status").textContent=(shift?"S ":"")+(alpha?"A ":"")+(memory!==0?"M ":"")+mode+" "+angle+(io==="LINE"?" LINE":"")+" "+(display==="FIX"?" FIX":display==="SCI"?" SCI":"");'
+new = '$("status").textContent=(shift?"S ":"")+(alpha?"A ":"")+(memory!==0?"M ":"")+mode+(mode==="BASE"?" "+baseMode:" "+angle)+(io==="LINE"?" LINE":"")+" "+(display==="FIX"?" FIX":display==="SCI"?" SCI":"");'
+if old in s:s=s.replace(old,new,1)
 
-old = 'else if(action==="fraction")$("result").textContent=fraction(ans);else if(action==="mminus")'
-new = 'else if(action==="fraction")$("result").textContent=fraction(ans);else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="mminus")'
-if old in s:
-    s = s.replace(old, new, 1)
+# Insert the BASE evaluator immediately before calculate().
+anchor='function calculate(){'
+if 'function baseDigitValue' not in s:
+    block=r'''function baseDigitValue(ch){return parseInt(ch,16)}
+function baseRadix(){return baseMode==="HEX"?16:baseMode==="BIN"?2:baseMode==="OCT"?8:10}
+function baseCalculate(){
+ try{
+   if(!expr.trim()) return;
+   const radix=baseRadix();
+   const js=expr.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-")
+     .replace(/([0-9A-F]+)/gi,m=>String(parseInt(m,radix)));
+   if(!/^[0-9+*/%().\\s-]+$/.test(js))throw Error();
+   const v=Function("return ("+js+")")();
+   if(typeof v!=="number"||!Number.isFinite(v)||!Number.isInteger(v))throw Error();
+   ans=v;
+   history.unshift({e:expr,r:v});history=history.slice(0,20);histPos=-1;
+   $("result").textContent=baseFormat(v);
+   expr="";render();
+ }catch(e){$("result").textContent="Math ERROR"}
+}
+function baseFormat(v){
+ const neg=v<0;let n=Math.abs(Math.trunc(v)),out=baseMode==="HEX"?n.toString(16).toUpperCase():baseMode==="BIN"?n.toString(2):baseMode==="OCT"?n.toString(8):String(n);
+ return neg?"−"+out:out;
+}
+function selectBase(next){
+ baseMode=next;
+ if(mode!=="BASE")mode="BASE";
+ if(Number.isFinite(ans))$("result").textContent=baseFormat(ans);
+ expr="";render();
+}
+'''
+    s=s.replace(anchor,block+anchor,1)
 
-# Remove only the redundant duplicate x!/percent tail cases if still present.
-s = s.replace('else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="," )add(",");',
-              'else if(action==="," )add(",");', 1)
+# Ensure calculate delegates to the real BASE evaluator before the general evaluator.
+old='function calculate(){\n try{'
+new='function calculate(){\n if(mode==="BASE")return baseCalculate();\n try{'
+if old in s:s=s.replace(old,new,1)
+elif 'if(mode==="BASE")return baseCalculate();' not in s:raise SystemExit('calculate anchor missing')
 
-# Critical existing-key bug: the old pressButton() handled data-action buttons,
-# but never consumed ordinary data-v buttons (digits/operators). Preserve
-# Shift/Alpha dispatch first, then add the button's normal value.
-old = 'else if(a==="rcl")add(String(memory));else if(a==="abs")add("Abs(");else if(a==="mplus"){memory+=ans;render()}\n}'
-new = 'else if(a==="rcl")add(String(memory));else if(a==="abs")add("Abs(");else if(a==="mplus"){memory+=ans;render()}\n else if(a===undefined && b.dataset.v!==undefined)add(b.dataset.v);\n}'
-if old in s:
-    s = s.replace(old, new, 1)
-elif new not in s:
-    raise SystemExit('missing data-v dispatch anchor and patched form')
+# Physical radix keys now select a number system when BASE mode is active.
+old='function pressButton(b){\n const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;'
+new='function pressButton(b){\n const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;\n if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}'
+if old in s:s=s.replace(old,new,1)
+elif 'b.dataset.base' not in s:raise SystemExit('pressButton anchor missing')
 
-p.write_text(s, encoding='utf-8')
-print('F-789SGA Batch 1 patch is applied/idempotent')
+# In BASE mode Alpha+A..F are hexadecimal digits rather than stored variables.
+old='if(alpha && alphaVal!==undefined){add(alphaVal);alpha=false;render();return}'
+new='if(alpha && alphaVal!==undefined){if(mode==="BASE" && /^[A-F]$/.test(alphaVal)){add(alphaVal);alpha=false;render();return}add(alphaVal);alpha=false;render();return}'
+if old in s:s=s.replace(old,new,1)
+
+# Reset radix on calculator reset.
+old='if(i===17)allClear(),mode="COMP",angle="DEG",io="MATH",display="NORM1",fractionMode="d/c";'
+new='if(i===17)allClear(),mode="COMP",angle="DEG",io="MATH",display="NORM1",fractionMode="d/c",baseMode="DEC";'
+if old in s:s=s.replace(old,new,1)
+
+# The existing BASE Apps DEC/HEX/BIN/OCT entries must use the same state,
+# rather than merely printing their names.
+old='function base(n){if(["DEC","HEX","BIN","OCT"].includes(n))return $("result").textContent=n;'
+new='function base(n){if(["DEC","HEX","BIN","OCT"].includes(n))return selectBase(n);'
+if old in s:s=s.replace(old,new,1)
+
+p.write_text(s,encoding='utf-8')
+print('F-789SGA Batch 4 BASE-n patch applied')
