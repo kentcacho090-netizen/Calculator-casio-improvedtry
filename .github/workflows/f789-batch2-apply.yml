@@ -11,6 +11,9 @@ on:
 permissions:
   contents: write
 
+env:
+  KNOWN_GOOD_INDEX: f08a3dd446711e4b1def8e09931588d91cf3dc25
+
 jobs:
   apply:
     runs-on: ubuntu-latest
@@ -22,16 +25,32 @@ jobs:
         run: python tools/f789_batch2_patch.py
 
       - name: Run Batch 2 runtime regression tests
+        id: tests
         run: node tools/test_f789_batch2.mjs
 
-      - name: Commit applied patch
+      - name: Commit verified Batch 2
+        if: success()
         run: |
           if git diff --quiet -- index.html; then
-            echo 'index.html already contains Batch 2; nothing to commit.'
+            echo 'index.html already contains the verified Batch 2 patch.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git commit -m 'Implement F-789SGA Batch 2 secondary functions'
+          git commit -m 'Implement verified F-789SGA Batch 2 secondary functions'
+          git push
+
+      - name: Roll back unverified Batch 2
+        if: failure()
+        run: |
+          git checkout "$KNOWN_GOOD_INDEX" -- index.html
+          if git diff --quiet -- index.html; then
+            echo 'index.html is already at the known-good version.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Revert unverified F-789SGA Batch 2 patch'
           git push
