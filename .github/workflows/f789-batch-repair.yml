@@ -38,7 +38,16 @@ jobs:
           node --check /tmp/f789.js
 
       - name: Runtime smoke tests for checked functions
-        run: node tools/test_f789.mjs
+        run: |
+          node tools/test_f789.mjs > /tmp/f789-test.log 2>&1
+
+      - name: Preserve runtime test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f789-batch-test-log
+          path: /tmp/f789-test.log
+          if-no-files-found: warn
 
       - name: Commit repaired emulator
         run: |
