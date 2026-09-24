@@ -39,12 +39,12 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 <button class="k fn" data-action="inv" data-shift="x!"><span class="sub o">x!</span>x⁻¹</button>
 <button class="k fn" data-action="fraction"><span class="sub b">d/c↔a b/c</span>F↔D</button>
 <button class="k fn" data-action="eng"><span class="sub o">↔ENG</span>ENG</button>
-<button class="k fn" data-v="÷"><span class="sub g">DEC</span>÷</button>
-<button class="k fn" data-action="sqrt"><span class="sub g">HEX</span>√</button>
+<button class="k fn" data-v="÷" data-base="DEC"><span class="sub g">DEC</span>÷</button>
+<button class="k fn" data-action="sqrt" data-base="HEX"><span class="sub g">HEX</span>√</button>
 </div>
 <div class="grid6">
-<button class="k fn" data-action="square"><span class="sub g">BIN</span>x²</button>
-<button class="k fn" data-action="cube"><span class="sub g">OCT</span>x³</button>
+<button class="k fn" data-action="square" data-base="BIN"><span class="sub g">BIN</span>x²</button>
+<button class="k fn" data-action="cube" data-base="OCT"><span class="sub g">OCT</span>x³</button>
 <button class="k fn" data-action="log" data-shift="pow10"><span class="sub b">10ⁿ</span>log</button>
 <button class="k fn" data-action="ln" data-shift="powe"><span class="sub b">eⁿ</span>ln</button>
 <button class="k fn" data-action="neg" data-alpha="A"><span class="sub b">A</span>(−)</button>
@@ -78,12 +78,12 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-let expr="",ans=0,memory=0,shift=false,alpha=false,mode="COMP",angle="DEG",io="MATH",display="NORM1",fractionMode="d/c",history=[],histPos=-1;
+let expr="",ans=0,memory=0,shift=false,alpha=false,mode="COMP",angle="DEG",io="MATH",display="NORM1",fractionMode="d/c",history=[],histPos=-1,baseMode="DEC";
 const V={A:0,B:0,C:0,D:0,X:0,Y:0,M:0};
 const rad=x=>angle==="DEG"?x*Math.PI/180:angle==="GRAD"?x*Math.PI/200:x;
 const fromRad=x=>angle==="DEG"?x*180/Math.PI:angle==="GRAD"?x*200/Math.PI:x;
 function render(){
-  $("status").textContent=(shift?"S ":"")+(alpha?"A ":"")+(memory!==0?"M ":"")+mode+" "+angle+(io==="LINE"?" LINE":"")+" "+(display==="FIX"?" FIX":display==="SCI"?" SCI":"");
+  $("status").textContent=(shift?"S ":"")+(alpha?"A ":"")+(memory!==0?"M ":"")+mode+(mode==="BASE"?" "+baseMode:" "+angle)+(io==="LINE"?" LINE":"")+" "+(display==="FIX"?" FIX":display==="SCI"?" SCI":"");
   $("expr").textContent=expr;
   $("shift").classList.toggle("activeS",shift);$("alpha").classList.toggle("activeA",alpha);
 }
@@ -138,7 +138,32 @@ function evalExpr(s){
  if(!/^[0-9A-Za-z_+*/%().,\s*-]+$/.test(js))throw Error();
  return Function("fact","Math","npr","ncr","return ("+js+")")(fact,Math,npr,ncr);
 }
+function baseRadix(){return baseMode==="HEX"?16:baseMode==="BIN"?2:baseMode==="OCT"?8:10}
+function baseFormat(v){
+ const neg=v<0;let n=Math.abs(Math.trunc(v));
+ let out=baseMode==="HEX"?n.toString(16).toUpperCase():baseMode==="BIN"?n.toString(2):baseMode==="OCT"?n.toString(8):String(n);
+ return neg?"−"+out:out;
+}
+function baseCalculate(){
+ try{
+   if(!expr.trim())return;
+   const radix=baseRadix();
+   const js=expr.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-")
+     .replace(/([0-9A-F]+)/gi,m=>String(parseInt(m,radix)));
+   if(!/^[0-9+*/%().\s-]+$/.test(js))throw Error();
+   const v=Function("return ("+js+")")();
+   if(typeof v!=="number"||!Number.isFinite(v)||!Number.isInteger(v))throw Error();
+   ans=v;history.unshift({e:expr,r:v});history=history.slice(0,20);histPos=-1;
+   $("result").textContent=baseFormat(v);expr="";render();
+ }catch(e){$("result").textContent="Math ERROR"}
+}
+function selectBase(next){
+ baseMode=next;if(mode!=="BASE")mode="BASE";
+ if(Number.isFinite(ans))$("result").textContent=baseFormat(ans);
+ expr="";render();
+}
 function calculate(){
+ if(mode==="BASE")return baseCalculate();
  try{
    let v=evalExpr(expr);
    if(typeof v!=="number"||!Number.isFinite(v))throw Error();
@@ -165,7 +190,7 @@ function setup(){
   if(i===6){display="SCI";window.sciDigits=Number(prompt("SCI significant digits (0-9)","6"))||0}
   if(i===7)display="NORM1";if(i===8)display="NORM2";if(i===9)fractionMode="a b/c";if(i===10)fractionMode="d/c";
   if(i===11)V.CPLX="a+bi";if(i===12)V.CPLX="r∠θ";
-  if(i===17)allClear(),mode="COMP",angle="DEG",io="MATH",display="NORM1",fractionMode="d/c";
+  if(i===17)allClear(),mode="COMP",angle="DEG",io="MATH",display="NORM1",fractionMode="d/c",baseMode="DEC";
  });
 }
 function modeMenu(){menu("MODE",["COMP","CPLX","STAT","BASE","EQN","TABLE","MATX","VCTR"],i=>{mode=["COMP","CPLX","STAT","BASE","EQN","TABLE","MATX","VCTR"][i];expr="";})}
@@ -208,7 +233,7 @@ function app(n){
  if(mode==="CPLX")return complex(n);if(mode==="BASE")return base(n);if(mode==="STAT")return statistics(n);if(mode==="EQN")return equation(n);if(mode==="TABLE")return table(n);if(mode==="MATX")return matrix(n);if(mode==="VCTR")return vector(n);
 }
 function complex(n){return field("CPLX "+n,[["z","z","3+4i"]],()=>{let s=$("z").value.replace(/\s/g,""),a=0,b=0;if(s.includes("∠")){let q=s.split("∠");a=+q[0]*Math.cos(rad(+q[1]));b=+q[0]*Math.sin(rad(+q[1]))}else{let m=s.match(/^([+-]?\d*\.?\d+)?([+-]\d*\.?\d+)?i?$/);if(!m)throw Error();a=+(m[1]||0);b=+(m[2]||0)}if(n==="Arg")$("result").textContent=formatNumber(fromRad(Math.atan2(b,a)));else if(n==="Conjg")$("result").textContent=a+(b<0?" + ":" - ")+Math.abs(b)+"i";else if(n==="Real")$("result").textContent=formatNumber(a);else if(n==="Imag")$("result").textContent=formatNumber(b);else if(n==="r∠θ")$("result").textContent=formatNumber(Math.hypot(a,b))+"∠"+formatNumber(fromRad(Math.atan2(b,a)));else $("result").textContent=formatNumber(a)+(b<0?" - ":" + ")+formatNumber(Math.abs(b))+"i"})}
-function base(n){if(["DEC","HEX","BIN","OCT"].includes(n))return $("result").textContent=n;return field(n,[["A","a","10"],["B","b","3"]],()=>{let a=+$("a").value,b=+$("b").value,v=n==="and"?a&b:n==="or"?a|b:n==="Xor"?a^b:n==="Xnor"?~(a^b):n==="Neg"?-a:~a;$("result").textContent=String(v)})}
+function base(n){if(["DEC","HEX","BIN","OCT"].includes(n))return selectBase(n);return field(n,[["A","a","10"],["B","b","3"]],()=>{let a=+$("a").value,b=+$("b").value,v=n==="and"?a&b:n==="or"?a|b:n==="Xor"?a^b:n==="Xnor"?~(a^b):n==="Neg"?-a:~a;$("result").textContent=String(v)})}
 function statistics(n){if(n==="Type")return menu("STAT TYPE",["SD","Lin","Quad","Log","e EXP","ab EXP","Pwr","Inv"],()=>{});if(n==="Data"||n==="Edit")return field("STAT DATA",[["x","x","75,85,90,77,79"],["y","y","38,54,59,40,38"]],()=>{statX=$("x").value.split(",").map(Number);statY=$("y").value.split(",").map(Number);$("result").textContent=statX.length+" DATA"});if(n==="S-SUM"||n==="S-VAR"){if(!statX.length)return $("result").textContent="NO DATA";let s=statX.reduce((a,b)=>a+b,0),m=s/statX.length,ss=statX.reduce((a,b)=>a+(b-m)**2,0);$("result").textContent=n==="S-SUM"?"Σx="+s+"\\nΣx²="+statX.reduce((a,b)=>a+b*b,0):"x̄="+m+"\\nsx="+Math.sqrt(ss/(statX.length-1))+"\\nσx="+Math.sqrt(ss/statX.length);return}if(n==="S-PTS")return $("result").textContent=statX.length?"n="+statX.length:"NO DATA";if(n==="Reg"){if(!statX.length)return $("result").textContent="NO DATA";let N=Math.min(statX.length,statY.length),sx=0,sy=0,sxx=0,sxy=0,syy=0;for(let i=0;i<N;i++){sx+=statX[i];sy+=statY[i];sxx+=statX[i]**2;sxy+=statX[i]*statY[i];syy+=statY[i]**2}let B=(N*sxy-sx*sy)/(N*sxx-sx*sx),A=(sy-B*sx)/N,r=(N*sxy-sx*sy)/Math.sqrt((N*sxx-sx*sx)*(N*syy-sy*sy));$("result").textContent="A="+A+"\\nB="+B+"\\nr="+r;return}if(n==="Distr")return field("Distribution",[["t","t","0"]],()=>{let t=+$("t").value,p=.5*(1+erf(t/Math.sqrt(2)));$("result").textContent="P="+p+"\\nQ="+(1-p)+"\\nR="+Math.abs(2*p-1)})}
 function erf(x){let s=x<0?-1:1;x=Math.abs(x);let t=1/(1+.3275911*x);return s*(1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x))}
 function equation(n){let d=n==="Quad"?2:n==="Cubic"?3:n==="Quart"?4:2;return field("EQN "+n,[["Coefficients","c",d===2?"1,-5,6":"1,0,0,-1"]],()=>{let c=$("c").value.split(",").map(Number);if(d===2){let D=c[1]**2-4*c[0]*c[2];if(D<0)return $("result").textContent="Complex roots";$("result").textContent="x1="+formatNumber((-c[1]+Math.sqrt(D))/(2*c[0]))+"\\nx2="+formatNumber((-c[1]-Math.sqrt(D))/(2*c[0]))}else $("result").textContent="Polynomial degree "+d+" accepted; numeric root pass pending"})}
@@ -244,7 +269,8 @@ function doShift(action){
 }
 function pressButton(b){
  const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
- if(alpha && alphaVal!==undefined){add(alphaVal);alpha=false;render();return}
+ if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
+ if(alpha && alphaVal!==undefined){if(mode==="BASE" && /^[A-F]$/.test(alphaVal)){add(alphaVal);alpha=false;render();return}add(alphaVal);alpha=false;render();return}
  if(shift){
    if(shiftVal!==undefined){const sv=shiftVal;shift=false;doShift(sv);render();return}
    shift=false;render();
