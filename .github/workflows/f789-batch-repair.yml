@@ -37,6 +37,9 @@ jobs:
           PY
           node --check /tmp/f789.js
 
+      - name: Install DOM test dependency
+        run: npm install --no-save jsdom@26
+
       - name: Runtime smoke tests for checked functions
         run: |
           node tools/test_f789.mjs > /tmp/f789-test.log 2>&1
