@@ -15,6 +15,8 @@ rep('data-v="+"><span class="sub o">Pol(</span>+',
     'data-v="+" data-shift="pol"><span class="sub o">Pol(</span>+')
 rep('data-v="−"><span class="sub o">Rec(</span>−',
     'data-v="−" data-shift="rec"><span class="sub o">Rec(</span>−')
+rep('data-v=")" data-shift=", " data-alpha="X"',
+    'data-v=")" data-shift="," data-alpha="X"')
 rep('let expr="",ans=0,memory=0,shift=false,alpha=false,mode="COMP",',
     'let expr="",ans=0,memory=0,shift=false,alpha=false,storePending=false,rclPending=false,dmsStage=0,mode="COMP",')
 rep('$("status").textContent=(shift?"S ":"")+(alpha?"A ":"")+(memory!==0?"M ":"")+',
