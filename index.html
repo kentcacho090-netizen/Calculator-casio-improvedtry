@@ -251,6 +251,7 @@ function pressButton(b){
  else if(a==="log")add("log(");else if(a==="ln")add("ln(");else if(a==="neg")add("−");else if(a==="dms")add("°′″");
  else if(a==="hyp")add("sinh(");else if(a==="sin")add("sin(");else if(a==="cos")add("cos(");else if(a==="tan")add("tan(");
  else if(a==="rcl")add(String(memory));else if(a==="abs")add("Abs(");else if(a==="mplus"){memory+=ans;render()}
+ else if(a===undefined && b.dataset.v!==undefined)add(b.dataset.v);
 }
 document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>pressButton(b));
 document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>pressButton(b));
