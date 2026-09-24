@@ -38,13 +38,14 @@ jobs:
       - name: Commit verified Batch 2
         if: success()
         run: |
-          if git diff --quiet -- index.html; then
+          rm -f tools/f789_batch2_failure.log
+          if git diff --quiet -- index.html tools/f789_batch2_failure.log; then
             echo 'index.html already contains the verified Batch 2 patch.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html
+          git add index.html tools/f789_batch2_failure.log
           git commit -m 'Implement verified F-789SGA Batch 2 secondary functions'
           git push
 
