@@ -5,7 +5,6 @@ on:
     paths:
       - 'tools/f789_batch2_patch.py'
       - 'tools/test_f789_batch2.mjs'
-      - 'package.json'
       - '.github/workflows/f789-batch2-apply.yml'
   workflow_dispatch:
 
@@ -21,9 +20,6 @@ jobs:
 
       - name: Apply idempotent Batch 2 patch
         run: python tools/f789_batch2_patch.py
-
-      - name: Install test dependency
-        run: npm install --no-audit --no-fund
 
       - name: Run Batch 2 runtime regression tests
         run: node tools/test_f789_batch2.mjs
