@@ -1,30 +1,37 @@
 from pathlib import Path
+import re
 
 # Batch 1: repair only already-present Shift dispatch and the existing key-input
 # path. Do not add a new calculator feature until these basic mappings are valid.
 p = Path('index.html')
 s = p.read_text(encoding='utf-8')
 
-replacements = {
-    '<button class="k fn" data-action="inv"><span class="sub o">x!</span>x⁻¹</button>':
-    '<button class="k fn" data-action="inv" data-shift="x!"><span class="sub o">x!</span>x⁻¹</button>',
-    '<button class="k fn" data-action="abs"><span class="sub o">%</span>Abs</button>':
-    '<button class="k fn" data-action="abs" data-shift="percent"><span class="sub o">%</span>Abs</button>',
-    '<button class="k fn" data-v="("><span class="sub o">%</span>(</button>':
-    '<button class="k fn" data-v="(" data-shift="percent"><span class="sub o">%</span>(</button>',
-    '<button class="k fn" data-action="sin"><span class="sub o">sin⁻¹</span>sin</button>':
-    '<button class="k fn" data-action="sin" data-shift="asin"><span class="sub o">sin⁻¹</span>sin</button>',
-    '<button class="k fn" data-action="cos"><span class="sub o">cos⁻¹</span>cos</button>':
-    '<button class="k fn" data-action="cos" data-shift="acos"><span class="sub o">cos⁻¹</span>cos</button>',
-    '<button class="k fn" data-action="tan"><span class="sub o">tan⁻¹</span>tan</button>':
-    '<button class="k fn" data-action="tan" data-shift="atan"><span class="sub o">tan⁻¹</span>tan</button>',
-}
+# Make Shift mappings idempotently, without depending on the exact span layout.
+def ensure_action_shift(action, shift_value):
+    pat = re.compile(r'(<button\b(?=[^>]*\bdata-action="' + re.escape(action) + r'")[^>]*)(>)')
+    def repl(m):
+        tag = m.group(1)
+        if 'data-shift=' in tag:
+            return m.group(0)
+        return tag + f' data-shift="{shift_value}"' + m.group(2)
+    out, n = pat.subn(repl, s, count=1)
+    if n == 0:
+        raise SystemExit(f'missing expected data-action button: {action}')
+    return out
 
-for old, new in replacements.items():
-    if old in s:
-        s = s.replace(old, new, 1)
-    elif new not in s:
-        raise SystemExit(f'missing expected markup and patched form: {old}')
+for action, shift_value in [('inv','x!'), ('abs','percent'), ('sin','asin'), ('cos','acos'), ('tan','atan')]:
+    s = ensure_action_shift(action, shift_value)
+
+# The first parenthesis key is the physical Shift-percent key.
+paren = re.compile(r'(<button\b(?=[^>]*\bdata-v="\(")[^>]*)(>)')
+def paren_repl(m):
+    tag = m.group(1)
+    if 'data-shift=' in tag:
+        return m.group(0)
+    return tag + ' data-shift="percent"' + m.group(2)
+s, n = paren.subn(paren_repl, s, count=1)
+if n == 0:
+    raise SystemExit('missing expected opening-parenthesis key')
 
 old = '''function pressButton(b){
  const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
@@ -61,9 +68,8 @@ s = s.replace('else if(action==="x!")add("!");else if(action==="percent")add("%"
               'else if(action==="," )add(",");', 1)
 
 # Critical existing-key bug: the old pressButton() handled data-action buttons,
-# but never consumed ordinary data-v buttons (digits/operators). That made even
-# 2+3 appear to do nothing. Preserve Shift/Alpha dispatch first, then add the
-# button's normal value when no data-action is present.
+# but never consumed ordinary data-v buttons (digits/operators). Preserve
+# Shift/Alpha dispatch first, then add the button's normal value.
 old = 'else if(a==="rcl")add(String(memory));else if(a==="abs")add("Abs(");else if(a==="mplus"){memory+=ans;render()}\n}'
 new = 'else if(a==="rcl")add(String(memory));else if(a==="abs")add("Abs(");else if(a==="mplus"){memory+=ans;render()}\n else if(a===undefined && b.dataset.v!==undefined)add(b.dataset.v);\n}'
 if old in s:
