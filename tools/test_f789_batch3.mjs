@@ -12,25 +12,19 @@ const document={getElementById:id=>nodes[id]||byId.get(id),querySelector:selecto
 const window={document};
 vm.runInNewContext(script,{document,window,console,Math,Number,String,Object,Array,RegExp,Error,Function,parseInt,parseFloat,isFinite,Infinity,NaN});
 const click=(selector,label)=>{const b=document.querySelector(selector);if(!b)throw new Error(`Button not found: ${label}`);b.click()};
-const clickNth=(selector,index,label)=>{const b=matches(selector)[index];if(!b)throw new Error(`Button not found: ${label}`);b.click()};
-const result=()=>nodes.result.textContent;const expr=()=>nodes.expr.textContent;
+const result=()=>nodes.result.textContent;
 const eq=(a,b,l)=>{if(String(a)!==String(b))throw new Error(`${l}: expected ${b}, got ${a}`)};
 const close=(a,b,e,l)=>{const n=Number(a);if(!Number.isFinite(n)||Math.abs(n-b)>e)throw new Error(`${l}: expected ${b}, got ${a}`)};
 const reset=()=>byId.get('on').click();
 
-// DMS: 12°30′0″ = 12.5°
 reset();click('[data-v="1"]','1');click('[data-v="2"]','2');click('[data-action="dms"]','DMS °');click('[data-v="3"]','3');click('[data-v="0"]','0');click('[data-action="dms"]','DMS ′');click('[data-v="0"]','0');click('[data-action="dms"]','DMS ″');byId.get('equals').click();close(result(),12.5,1e-12,'DMS conversion');
 
-// STO A then RCL A.
 reset();click('[data-v="7"]','7');byId.get('equals').click();byId.get('shift').click();click('[data-action="rcl"]','STO');byId.get('alpha').click();click('[data-alpha="A"]','Alpha A');reset();byId.get('alpha').click();click('[data-alpha="A"]','Alpha A');byId.get('equals').click();eq(result(),'7','stored variable A recall');
 
-// Pol(3,4) = 5. The physical comma is SHIFT + right parenthesis.
 reset();byId.get('shift').click();click('[data-v="+"]','Shift + / Pol');click('[data-v="3"]','3');byId.get('shift').click();click('[data-v=")"]','Shift ) / comma');click('[data-v="4"]','4');click('[data-v=")"]',')');byId.get('equals').click();close(result(),5,1e-12,'Pol(3,4)');
 
-// Rec(5,53.130102354...) ≈ 3.
 reset();byId.get('shift').click();click('[data-v="−"]','Shift - / Rec');click('[data-v="5"]','5');byId.get('shift').click();click('[data-v=")"]','Shift ) / comma');for(const ch of '53.13010235415598')click(`[data-v="${ch}"]`,ch);click('[data-v=")"]',')');byId.get('equals').click();close(result(),3,1e-9,'Rec(r,theta)');
 
-// DRG▶ converts 180 degrees to π radians and changes the angle mode.
-reset();click('[data-v="1"]','1');click('[data-v="8"]','8');click('[data-v="0"]','0');byId.get('equals').click();byId.get('shift').click();click('[data-action="drg"]','Shift Ans / DRG');close(result(),Math.PI,1e-12,'DRG degree-to-radian');
+reset();click('[data-v="1"]','1');click('[data-v="8"]','8');click('[data-v="0"]','0');byId.get('equals').click();byId.get('shift').click();byId.get('ans').click();close(result(),Math.PI,1e-12,'DRG degree-to-radian');
 
 console.log('F-789SGA Batch 3 runtime tests passed');
