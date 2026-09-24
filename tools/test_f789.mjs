@@ -39,13 +39,15 @@ click('[data-action="inv"]', 'x^-1 / x!');
 document.getElementById('equals').click();
 assertEq(result(), '120', 'Shift x!');
 
-// Shift inverse sine in DEG: sin^-1(0.5) = 30.
+// Shift inverse sine in DEG: sin^-1(0.5) = 30. Scientific functions require
+// the closing parenthesis on this calculator.
 document.getElementById('on').click();
 document.getElementById('shift').click();
 click('[data-action="sin"]', 'sin / sin^-1');
 click('[data-v="0"]', '0');
 click('[data-v="."]', '.');
 click('[data-v="5"]', '5');
+click('[data-v=")"]', ')');
 document.getElementById('equals').click();
 assertEq(result(), '30', 'Shift sin^-1 in DEG');
 
