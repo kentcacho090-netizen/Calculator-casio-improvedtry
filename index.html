@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Canon F-789SGA Emulator</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#101111;color:#111;font-family:Arial,sans-serif}
+body{min-height:100vh;padding:12px;display:flex;justify-content:center}
+.calc{width:min(390px,96vw);background:#25282a;border:3px solid #111;border-radius:22px;padding:8px;box-shadow:0 10px 28px #000;position:relative}
+.solar{width:58%;height:27px;margin:auto;border:1px solid #555;background:repeating-linear-gradient(90deg,#101214 0 11px,#292d30 11px 13px)}
+.head{height:31px;display:flex;align-items:center;justify-content:space-between;padding:0 9px;color:#eee}.canon{font-size:21px;font-weight:800}.model{font-size:11px}
+.lcd{height:91px;margin:2px 5px 7px;background:#cbd8c7;border:5px solid #111;border-radius:8px;padding:5px 8px;font-family:monospace;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.status{height:14px;font-size:10px;white-space:nowrap}.expr{height:25px;text-align:right;white-space:nowrap;overflow:hidden}.result{height:28px;text-align:right;font-size:22px;white-space:nowrap;overflow:hidden}
+.controls{height:104px;position:relative;margin:0 3px}.k{position:relative;border:1px solid #777;border-radius:6px;background:#deded9;color:#222;font-weight:700;box-shadow:0 1px 2px #0008;touch-action:manipulation;cursor:pointer}.k:active{transform:scale(.96);filter:brightness(.9)}
+.sub{position:absolute;top:1px;left:1px;right:1px;font-size:6.5px;text-align:center;white-space:nowrap;overflow:hidden;line-height:9px}.o{color:#e5a027}.b{color:#55a8dc}.g{color:#58a05d}.red{color:#d13b36}
+.dark{background:#484c4f;color:#fff}.shift{color:#e5a027}.alpha{color:#55a8dc}.nav{background:#35393c;color:#fff;border-radius:50%;font-size:16px}.activeS{box-shadow:inset 0 0 0 2px #e5a027,0 0 8px #e5a02788}.activeA{box-shadow:inset 0 0 0 2px #55a8dc,0 0 8px #55a8dc88}
+.ctrl{position:absolute;width:18.5%;height:40px}.c1{left:0;top:0}.c2{left:20.5%;top:0}.c3{left:41%;top:0}.c4{right:20.5%;top:0}.c5{right:0;top:0}.apps{left:0;top:48px}.left{left:31%;top:40px}.right{left:51%;top:40px}.down{left:41%;top:59px}.convt{right:0;top:48px}
+.grid6{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:4px 3px}.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:5px 3px}.fn{height:39px;font-size:10px;padding:11px 1px 2px}.num{height:46px;font-size:19px;padding-top:11px;background:#f1f1ed}.op{font-size:18px}
+.overlay{position:absolute;inset:0;background:#111b;backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:20px;border-radius:19px;z-index:20}.overlay.show{display:flex}.panel{width:86%;background:#e8e9e3;border:2px solid #666;border-radius:10px;padding:11px;box-shadow:0 10px 30px #0009}.panel h3{margin:0 0 8px;font-size:14px}.choice{display:block;width:100%;padding:9px;margin:3px 0;border:1px solid #888;border-radius:5px;background:#f5f5ef;text-align:left;font-weight:700}.cancel{width:100%;padding:8px;margin-top:5px;border:0;border-radius:5px;background:#4b4f51;color:#fff;font-weight:700}
+</style>
+</head>
+<body>
+<div class="calc" id="calc">
+<div class="solar"></div><div class="head"><span class="canon">Canon</span><span class="model">F-789SGA</span></div>
+<div class="lcd"><div class="status" id="status">MATH  COMP  DEG</div><div class="expr" id="expr"></div><div class="result" id="result">0</div></div>
+<div class="controls">
+<button class="k ctrl c1 dark shift" id="shift"><span class="sub o">Shift</span>SHIFT</button>
+<button class="k ctrl c2 dark alpha" id="alpha"><span class="sub b">Alpha</span>ALPHA</button>
+<button class="k ctrl c3 nav" id="up">▲</button>
+<button class="k ctrl c4 dark" id="mode"><span class="sub o">SET-UP</span>MODE</button>
+<button class="k ctrl c5 dark" id="on">ON</button>
+<button class="k ctrl apps" id="apps"><span class="sub o">Apps</span>APPS</button>
+<button class="k ctrl left nav" id="left">◀</button><button class="k ctrl right nav" id="right">▶</button>
+<button class="k ctrl down nav" id="down">▼</button><button class="k ctrl convt" id="convt"><span class="sub g">G↔T</span>CONVT</button>
+</div>
+<div class="grid6">
+<button class="k fn" data-f="calc"><span class="sub o">Solve</span>CALC</button><button class="k fn" data-f="inv"><span class="sub o">x!</span>x⁻¹</button><button class="k fn" data-f="fraction"><span class="sub b">d/c↔b/c</span>F↔D</button><button class="k fn" data-f="eng"><span class="sub o">↔ENG</span>ENG</button><button class="k fn" data-v="÷"><span class="sub g">DEC</span>÷</button><button class="k fn" data-f="sqrt"><span class="sub g">HEX</span>√</button>
+</div>
+<div class="grid6">
+<button class="k fn" data-f="square"><span class="sub g">BIN</span>x²</button><button class="k fn" data-f="cube"><span class="sub g">OCT</span>x³</button><button class="k fn" data-f="log"><span class="sub b">10ⁿ</span>log</button><button class="k fn" data-f="ln"><span class="sub b">eⁿ</span>ln</button><button class="k fn" data-f="neg"><span class="sub b">A</span>(−)</button><button class="k fn" data-f="dms"><span class="sub b">B</span>°′″</button>
+</div>
+<div class="grid6">
+<button class="k fn" data-f="hyp"><span class="sub b">C</span>hyp</button><button class="k fn" data-f="sin"><span class="sub b">D</span>sin</button><button class="k fn" data-f="cos"><span class="sub b">E</span>cos</button><button class="k fn" data-f="tan"><span class="sub b">F</span>tan</button><button class="k fn" data-f="rcl"><span class="sub o">STO</span>RCL</button><button class="k fn" data-f="abs"><span class="sub b">%</span>Abs</button>
+</div>
+<div class="grid6">
+<button class="k fn" data-v="(">(</button><button class="k fn" data-v=")">)</button><button class="k fn" data-f="fd"><span class="sub b">X↔Y</span>F↔D</button><button class="k fn" data-f="mplus"><span class="sub b">M−</span>M+</button><button class="k fn" data-v="e"><span class="sub b">Σ</span>EXP</button><button class="k fn" id="ansTop"><span class="sub b">DRG▶</span>Ans</button>
+</div>
+<div class="grid5"><button class="k num" data-v="7">7</button><button class="k num" data-v="8">8</button><button class="k num" data-v="9">9</button><button class="k" id="del"><span class="sub o">CLR</span>DEL</button><button class="k red" id="ca"><span class="sub o">OFF</span>CA</button></div>
+<div class="grid5"><button class="k num" data-v="4">4</button><button class="k num" data-v="5">5</button><button class="k num" data-v="6">6</button><button class="k num op" data-v="×">×</button><button class="k num op" data-v="÷">÷</button></div>
+<div class="grid5"><button class="k num" data-v="1">1</button><button class="k num" data-v="2">2</button><button class="k num" data-v="3">3</button><button class="k num op" data-v="+">+</button><button class="k num op" data-v="−">−</button></div>
+<div class="grid5"><button class="k num" data-v="0">0</button><button class="k num" data-v=".">.</button><button class="k num" data-v="e">EXP</button><button class="k num" id="ans">Ans</button><button class="k num op" id="equals">=</button></div>
+<div class="overlay" id="overlay"><div class="panel"><h3 id="title">MODE</h3><div id="choices"></div><button class="cancel" id="cancel">CANCEL</button></div></div>
+</div>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+let expr="",last=0,memory=0,shift=false,alpha=false,mode="COMP",angle="DEG",menuIndex=0;
+function render(){ $("expr").textContent=expr; $("status").textContent=(shift?"SHIFT ":"")+(alpha?"ALPHA ":"")+"MATH  "+mode+"  "+angle; $("shift").classList.toggle("activeS",shift); $("alpha").classList.toggle("activeA",alpha); }
+function add(v){expr+=v;render();}
+function clear(){expr="";$("result").textContent="0";render();}
+function toJS(s){
+ s=s.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-").replace(/π/g,"Math.PI");
+ s=s.replace(/√\(/g,"Math.sqrt(").replace(/log\(/g,"Math.log10(").replace(/ln\(/g,"Math.log(");
+ s=s.replace(/sin\(([^()]*)\)/g,(m,x)=>"Math.sin(("+x+")*"+(angle==="DEG"?"Math.PI/180":angle==="GRAD"?"Math.PI/200":"1")+")");
+ s=s.replace(/cos\(([^()]*)\)/g,(m,x)=>"Math.cos(("+x+")*"+(angle==="DEG"?"Math.PI/180":angle==="GRAD"?"Math.PI/200":"1")+")");
+ s=s.replace(/tan\(([^()]*)\)/g,(m,x)=>"Math.tan(("+x+")*"+(angle==="DEG"?"Math.PI/180":angle==="GRAD"?"Math.PI/200":"1")+")");
+ s=s.replace(/\^/g,"**");
+ if(!/^[0-9+\-*/().\sA-Za-z]+$/.test(s))throw Error();
+ return s;
+}
+function calculate(){
+ try{const v=Function('"use strict";return ('+toJS(expr)+')')();if(!Number.isFinite(v))throw Error();last=v;$("result").textContent=String(Number(v.toPrecision(12)));expr="";render();}
+ catch(e){$("result").textContent="Math ERROR";}
+}
+function menu(type){
+ const list=type==="apps"?["COMP","CPLX","STAT","BASE","EQN","TABLE","MATX","VCTR"]:["MathIO","LineIO","DEG","RAD","GRAD","Fix","Sci","Norm","Reset"];
+ $("title").textContent=type==="apps"?"APPS":"SET-UP";const box=$("choices");box.innerHTML="";menuIndex=0;
+ list.forEach((name,i)=>{const b=document.createElement("button");b.className="choice";b.type="button";b.textContent=(i+1)+": "+name;b.onclick=()=>{if(type==="apps")mode=name;else if(name==="DEG")angle="DEG";else if(name==="RAD")angle="RAD";else if(name==="GRAD")angle="GRAD";else if(name==="Reset"){expr="";last=0;memory=0;$("result").textContent="0";} $("overlay").classList.remove("show");render();};box.appendChild(b);});
+ $("overlay").classList.add("show");
+}
+function move(d){if(!$("overlay").classList.contains("show"))return;const a=[...$("choices").children];if(!a.length)return;menuIndex=(menuIndex+d+a.length)%a.length;a[menuIndex].focus();}
+$("shift").onclick=()=>{shift=!shift;alpha=false;render();};$("alpha").onclick=()=>{alpha=!alpha;shift=false;render();};$("apps").onclick=()=>menu("apps");$("mode").onclick=()=>menu("mode");$("cancel").onclick=()=>$("overlay").classList.remove("show");$("up").onclick=()=>move(-1);$("down").onclick=()=>move(1);$("left").onclick=()=>move(-1);$("right").onclick=()=>move(1);$("on").onclick=clear;$("ca").onclick=()=>{expr="";last=0;memory=0;$("result").textContent="0";render();};$("del").onclick=()=>{expr=expr.slice(0,-1);render();};$("equals").onclick=calculate;$("ans").onclick=()=>add(String(last));$("ansTop").onclick=()=>add(String(last));
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>add(b.dataset.v));
+document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{const f=b.dataset.f;if(f==="sqrt")add("√(");else if(f==="square")add("^2");else if(f==="cube")add("^3");else if(f==="log")add("log(");else if(f==="ln")add("ln(");else if(f==="sin")add("sin(");else if(f==="cos")add("cos(");else if(f==="tan")add("tan(");else if(f==="abs")add("Math.abs(");else if(f==="inv")add("^(−1)");else if(f==="neg")add("−");else if(f==="rcl")add(String(memory));else if(f==="mplus")memory+=last;else if(f==="dms")add("°");else if(f==="calc")$("result").textContent="CALC";else if(f==="eng")$("result").textContent="ENG";else if(f==="fraction")$("result").textContent="F↔D";else if(f==="fd")$("result").textContent="F↔D";else if(f==="hyp")$("result").textContent="HYP";});
+render();
+})();
+</script>
+</body>
+</html>
