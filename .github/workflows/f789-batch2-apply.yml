@@ -1,0 +1,52 @@
+name: Apply F-789SGA Batch 2
+
+on:
+  push:
+    paths:
+      - 'tools/f789_batch2_patch.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply idempotent Batch 2 patch
+        run: python tools/f789_batch2_patch.py
+
+      - name: Static verification
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s = Path('index.html').read_text(encoding='utf-8')
+          required = [
+              'data-shift="pow10"',
+              'data-shift="powe"',
+              'data-shift="npr"',
+              'data-shift="ncr"',
+              'else if(a==="exp")add("E")',
+              '10**($2)',
+              'npr("
+          ]
+          missing = [x for x in required if x not in s]
+          if missing:
+              raise SystemExit('Missing Batch 2 patch markers: ' + repr(missing))
+          print('Batch 2 static verification passed')
+          PY
+
+      - name: Commit applied patch
+        run: |
+          if git diff --quiet -- index.html; then
+            echo 'index.html already contains Batch 2; nothing to commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Implement F-789SGA Batch 2 secondary functions'
+          git push
