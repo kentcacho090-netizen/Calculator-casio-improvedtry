@@ -12,6 +12,12 @@ replacements = {
     '<button class="k fn" data-action="abs" data-shift="percent"><span class="sub o">%</span>Abs</button>',
     '<button class="k fn" data-v="("><span class="sub o">%</span>(</button>':
     '<button class="k fn" data-v="(" data-shift="percent"><span class="sub o">%</span>(</button>',
+    '<button class="k fn" data-action="sin"><span class="sub o">sin⁻¹</span>sin</button>':
+    '<button class="k fn" data-action="sin" data-shift="asin"><span class="sub o">sin⁻¹</span>sin</button>',
+    '<button class="k fn" data-action="cos"><span class="sub o">cos⁻¹</span>cos</button>':
+    '<button class="k fn" data-action="cos" data-shift="acos"><span class="sub o">cos⁻¹</span>cos</button>',
+    '<button class="k fn" data-action="tan"><span class="sub o">tan⁻¹</span>tan</button>':
+    '<button class="k fn" data-action="tan" data-shift="atan"><span class="sub o">tan⁻¹</span>tan</button>',
 }
 
 for old, new in replacements.items():
