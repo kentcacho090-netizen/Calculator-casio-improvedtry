@@ -36,7 +36,7 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 </div>
 <div class="grid6">
 <button class="k fn" data-action="calc"><span class="sub o">Solve</span>CALC</button>
-<button class="k fn" data-action="inv"><span class="sub o">x!</span>x⁻¹</button>
+<button class="k fn" data-action="inv" data-shift="x!"><span class="sub o">x!</span>x⁻¹</button>
 <button class="k fn" data-action="fraction"><span class="sub b">d/c↔a b/c</span>F↔D</button>
 <button class="k fn" data-action="eng"><span class="sub o">↔ENG</span>ENG</button>
 <button class="k fn" data-v="÷"><span class="sub g">DEC</span>÷</button>
@@ -56,10 +56,10 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 <button class="k fn" data-action="cos" data-shift="acos" data-alpha="E"><span class="sub o">cos⁻¹</span><span class="sub b" style="top:-5px">E</span>cos</button>
 <button class="k fn" data-action="tan" data-shift="atan" data-alpha="F"><span class="sub o">tan⁻¹</span><span class="sub b" style="top:-5px">F</span>tan</button>
 <button class="k fn" data-action="rcl"><span class="sub o">STO</span>RCL</button>
-<button class="k fn" data-action="abs"><span class="sub o">%</span>Abs</button>
+<button class="k fn" data-action="abs" data-shift="percent"><span class="sub o">%</span>Abs</button>
 </div>
 <div class="grid6">
-<button class="k fn" data-v="("><span class="sub o">%</span>(</button>
+<button class="k fn" data-v="(" data-shift="percent"><span class="sub o">%</span>(</button>
 <button class="k fn" data-v=")" data-shift=", " data-alpha="X"><span class="sub o">,</span><span class="sub b" style="top:-5px">X</span>)</button>
 <button class="k fn" data-action="fraction" data-shift="fraction"><span class="sub o">a b/c↔d/c</span><span class="sub b" style="top:-5px">Y</span>F↔D</button>
 <button class="k fn" data-action="mplus" data-shift="mminus" data-alpha="M"><span class="sub o">M−</span><span class="sub b" style="top:-5px">M</span>M+</button>
@@ -230,23 +230,26 @@ $("convt").onclick=()=>field("CONVT",[["Value","v","5"]],()=>{$("result").textCo
 
 function doShift(action){
  if(action==="asin")add("sin⁻¹(");else if(action==="acos")add("cos⁻¹(");else if(action==="atan")add("tan⁻¹(");
- else if(action==="fraction")$("result").textContent=fraction(ans);else if(action==="mminus"){memory-=ans;render()}
+ else if(action==="fraction")$("result").textContent=fraction(ans);else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="mminus"){memory-=ans;render()}
  else if(action==="sum")$("result").textContent="Σ";else if(action==="drg")$("result").textContent="DRG▶";
  else if(action==="round")$("result").textContent=Math.round(ans);else if(action==="rand"){ans=Math.random();$("result").textContent=ans.toFixed(3)}
  else if(action==="pi")add("π");else if(action==="eng"){if(ans===0)$("result").textContent="0";else{const p=Math.floor(Math.log10(Math.abs(ans))/3)*3;$("result").textContent=(ans/10**p)+"×10^"+p}}
  else if(action==="solve")solve();else if(action==="inv")add("!");
- else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="," )add(",");
+ else if(action==="," )add(",");
  else if(action==="CALC")solve();
 }
 function pressButton(b){
  const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
  if(alpha && alphaVal!==undefined){add(alphaVal);alpha=false;render();return}
- if(shift && shiftVal!==undefined){shift=false;doShift(shiftVal);render();return}
+ if(shift){
+   if(shiftVal!==undefined){const sv=shiftVal;shift=false;doShift(sv);render();return}
+   shift=false;render();
+ }
  const a=b.dataset.action;
  if(a==="calc")solve();else if(a==="inv")add("1/(");else if(a==="fraction")$("result").textContent=fraction(ans);
  else if(a==="eng")doShift("eng");else if(a==="sqrt")add("√(");else if(a==="square")add("^2");else if(a==="cube")add("^3");
  else if(a==="log")add("log(");else if(a==="ln")add("ln(");else if(a==="neg")add("−");else if(a==="dms")add("°′″");
- else if(a==="hyp")add(shift?"cosh(":"sinh(");else if(a==="sin")add("sin(");else if(a==="cos")add("cos(");else if(a==="tan")add("tan(");
+ else if(a==="hyp")add("sinh(");else if(a==="sin")add("sin(");else if(a==="cos")add("cos(");else if(a==="tan")add("tan(");
  else if(a==="rcl")add(String(memory));else if(a==="abs")add("Abs(");else if(a==="mplus"){memory+=ans;render()}
 }
 document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>pressButton(b));
