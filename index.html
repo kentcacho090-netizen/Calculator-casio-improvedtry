@@ -45,8 +45,8 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 <div class="grid6">
 <button class="k fn" data-action="square"><span class="sub g">BIN</span>x²</button>
 <button class="k fn" data-action="cube"><span class="sub g">OCT</span>x³</button>
-<button class="k fn" data-action="log" data-shift="pow10"><span class="sub b">10ⁿ</span>log</button>
-<button class="k fn" data-action="ln" data-shift="powe"><span class="sub b">eⁿ</span>ln</button>
+<button class="k fn" data-action="log"><span class="sub b">10ⁿ</span>log</button>
+<button class="k fn" data-action="ln"><span class="sub b">eⁿ</span>ln</button>
 <button class="k fn" data-action="neg" data-alpha="A"><span class="sub b">A</span>(−)</button>
 <button class="k fn" data-action="dms" data-alpha="B"><span class="sub b">B</span>°′″</button>
 </div>
@@ -63,15 +63,15 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 <button class="k fn" data-v=")" data-shift=", " data-alpha="X"><span class="sub o">,</span><span class="sub b" style="top:-5px">X</span>)</button>
 <button class="k fn" data-action="fraction" data-shift="fraction"><span class="sub o">a b/c↔d/c</span><span class="sub b" style="top:-5px">Y</span>F↔D</button>
 <button class="k fn" data-action="mplus" data-shift="mminus" data-alpha="M"><span class="sub o">M−</span><span class="sub b" style="top:-5px">M</span>M+</button>
-<button class="k fn" data-action="exp" data-shift="sum"><span class="sub g">Σ</span>EXP</button>
+<button class="k fn" data-v="e" data-shift="sum"><span class="sub g">Σ</span>EXP</button>
 <button class="k fn" id="ansTop" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button>
 </div>
 <div class="grid5">
 <button class="k num" data-v="7">7</button><button class="k num" data-v="8">8</button><button class="k num" data-v="9">9</button><button class="k num" id="del"><span class="sub o">CLR</span>DEL</button><button class="k num red" id="ca"><span class="sub o">OFF</span>CA</button>
 </div>
-<div class="grid5"><button class="k num" data-v="4">4</button><button class="k num" data-v="5">5</button><button class="k num" data-v="6">6</button><button class="k num op" data-v="×" data-shift="npr"><span class="sub o">nPr</span>×</button><button class="k num op" data-v="÷" data-shift="ncr"><span class="sub o">nCr</span>÷</button></div>
+<div class="grid5"><button class="k num" data-v="4">4</button><button class="k num" data-v="5">5</button><button class="k num" data-v="6">6</button><button class="k num op" data-v="×"><span class="sub o">nPr</span>×</button><button class="k num op" data-v="÷"><span class="sub o">nCr</span>÷</button></div>
 <div class="grid5"><button class="k num" data-v="1">1</button><button class="k num" data-v="2">2</button><button class="k num" data-v="3">3</button><button class="k num op" data-v="+"><span class="sub o">Pol(</span>+</button><button class="k num op" data-v="−"><span class="sub o">Rec(</span>−</button></div>
-<div class="grid5"><button class="k num" data-v="0" data-shift="round"><span class="sub o">ROUND</span>0</button><button class="k num" data-v="." data-shift="rand"><span class="sub o">Rand i-Rand</span>.</button><button class="k num" data-action="exp" data-shift="pi" data-alpha="e"><span class="sub o">π</span><span class="sub b" style="top:-5px">e</span>EXP</button><button class="k num" id="ans" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button><button class="k num op" id="equals">=</button></div>
+<div class="grid5"><button class="k num" data-v="0" data-shift="round"><span class="sub o">ROUND</span>0</button><button class="k num" data-v="." data-shift="rand"><span class="sub o">Rand i-Rand</span>.</button><button class="k num" data-v="e" data-shift="pi" data-alpha="e"><span class="sub o">π</span><span class="sub b" style="top:-5px">e</span>EXP</button><button class="k num" id="ans" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button><button class="k num op" id="equals">=</button></div>
 <div class="overlay" id="overlay"><div class="panel"><h3 id="title">MODE</h3><div id="choices"></div><button class="cancel" id="cancel">CANCEL</button></div></div>
 </div>
 <script>
@@ -111,7 +111,7 @@ function implicit(s){
 function transform(s){
  s=s.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-").replace(/π/g,"Math.PI").replace(/Ans/g,"("+ans+")");
  Object.keys(V).forEach(k=>{s=s.replace(new RegExp("\\b"+k+"\\b","g"),"("+V[k]+")")});
- s=s.replace(/(\d+(?:\.\d+)?)[Ee]([+\-]?\d+)/g,"($1*10**($2))");s=s.replace(/\be\b/g,"Math.E");
+ s=s.replace(/E/g,"e");
  s=s.replace(/√/g,"Math.sqrt");
  s=s.replace(/log/g,"Math.log10").replace(/ln/g,"Math.log").replace(/Abs/g,"Math.abs");
  s=s.replace(/sin⁻¹/g,"asin").replace(/cos⁻¹/g,"acos").replace(/tan⁻¹/g,"atan");
@@ -125,8 +125,6 @@ function transform(s){
  s=s.replace(/Math\.sin\(([^()]*)\)/g,(m,x)=>"Math.sin("+toRadExpr(x)+")");
  s=s.replace(/Math\.cos\(([^()]*)\)/g,(m,x)=>"Math.cos("+toRadExpr(x)+")");
  s=s.replace(/Math\.tan\(([^()]*)\)/g,(m,x)=>"Math.tan("+toRadExpr(x)+")");
- s=s.replace(/(\d+(?:\.\d+)?)P(\d+(?:\.\d+)?)/g,(m,n,r)=>"npr("+n+","+r+")");
- s=s.replace(/(\d+(?:\.\d+)?)C(\d+(?:\.\d+)?)/g,(m,n,r)=>"ncr("+n+","+r+")");
  s=s.replace(/(\d+(?:\.\d+)?)!/g,(m,n)=>"fact("+n+")");
  s=s.replace(/\^/g,"**");
  return implicit(s);
@@ -136,7 +134,7 @@ function fromRadExpr(x){return angle==="DEG"?"("+x+"*180/Math.PI)":angle==="GRAD
 function evalExpr(s){
  let js=transform(s);
  if(!/^[0-9A-Za-z_+*/%().,\s*-]+$/.test(js))throw Error();
- return Function("fact","Math","npr","ncr","return ("+js+")")(fact,Math,npr,ncr);
+ return Function("fact","Math","return ("+js+")")(fact,Math);
 }
 function calculate(){
  try{
@@ -232,9 +230,7 @@ $("convt").onclick=()=>field("CONVT",[["Value","v","5"]],()=>{$("result").textCo
 
 function doShift(action){
  if(action==="asin")add("sin⁻¹(");else if(action==="acos")add("cos⁻¹(");else if(action==="atan")add("tan⁻¹(");
- else if(action==="fraction")$("result").textContent=fraction(ans);
- else if(action==="pow10")add("10^(");else if(action==="powe")add("e^(");
- else if(action==="npr")add("P");else if(action==="ncr")add("C");else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="mminus"){memory-=ans;render()}
+ else if(action==="fraction")$("result").textContent=fraction(ans);else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="mminus"){memory-=ans;render()}
  else if(action==="sum")$("result").textContent="Σ";else if(action==="drg")$("result").textContent="DRG▶";
  else if(action==="round")$("result").textContent=Math.round(ans);else if(action==="rand"){ans=Math.random();$("result").textContent=ans.toFixed(3)}
  else if(action==="pi")add("π");else if(action==="eng"){if(ans===0)$("result").textContent="0";else{const p=Math.floor(Math.log10(Math.abs(ans))/3)*3;$("result").textContent=(ans/10**p)+"×10^"+p}}
@@ -252,7 +248,7 @@ function pressButton(b){
  const a=b.dataset.action;
  if(a==="calc")solve();else if(a==="inv")add("1/(");else if(a==="fraction")$("result").textContent=fraction(ans);
  else if(a==="eng")doShift("eng");else if(a==="sqrt")add("√(");else if(a==="square")add("^2");else if(a==="cube")add("^3");
- else if(a==="log")add("log(");else if(a==="ln")add("ln(");else if(a==="neg")add("−");else if(a==="exp")add("E");else if(a==="dms")add("°′″");
+ else if(a==="log")add("log(");else if(a==="ln")add("ln(");else if(a==="neg")add("−");else if(a==="dms")add("°′″");
  else if(a==="hyp")add("sinh(");else if(a==="sin")add("sin(");else if(a==="cos")add("cos(");else if(a==="tan")add("tan(");
  else if(a==="rcl")add(String(memory));else if(a==="abs")add("Abs(");else if(a==="mplus"){memory+=ans;render()}
  else if(a===undefined && b.dataset.v!==undefined)add(b.dataset.v);
