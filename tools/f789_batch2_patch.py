@@ -15,32 +15,26 @@ def add_attr_to_button(marker: str, attr: str):
     if attr not in tag:
         s = s[:m.start(1)] + tag + ' ' + attr + s[m.end(1):]
 
-# Physical secondary labels from the real F-789SGA: these are Shift mappings,
-# not new buttons. Keep the existing keypad/layout untouched.
 for marker, attr in [
     ('data-action="log"', 'data-shift="pow10"'),
     ('data-action="ln"', 'data-shift="powe"'),
+    ('class="k num op" data-v="×"', 'data-shift="npr"'),
+    ('class="k num op" data-v="÷"', 'data-shift="ncr"'),
 ]:
     add_attr_to_button(marker, attr)
 
-# nPr/nCr are infix operations on the physical calculator: 10 nPr 3 -> 720.
-add_attr_to_button('data-v="×"', 'data-shift="npr"')
-add_attr_to_button('data-v="÷"', 'data-shift="ncr"')
-
-# The EXP key must not insert the mathematical constant e in normal mode.
-# Normal EXP is scientific-notation entry; Alpha+EXP is the e constant.
+# Normal EXP is scientific-notation entry. Alpha+EXP remains the constant e.
 s = s.replace('class="k fn" data-v="e" data-shift="sum"><span class="sub g">Σ</span>EXP',
               'class="k fn" data-action="exp" data-shift="sum"><span class="sub g">Σ</span>EXP', 1)
 s = s.replace('class="k num" data-v="e" data-shift="pi" data-alpha="e"><span class="sub o">π</span>',
               'class="k num" data-action="exp" data-shift="pi" data-alpha="e"><span class="sub o">π</span>', 1)
 
-# Add a dedicated normal EXP dispatch.
 anchor = 'else if(a==="neg")add("−");else if(a==="dms")add("°′″");'
 replacement = 'else if(a==="neg")add("−");else if(a==="exp")add("E");else if(a==="dms")add("°′″");'
 if anchor in s and 'else if(a==="exp")add("E")' not in s:
     s = s.replace(anchor, replacement, 1)
 
-# Shift 10^n, e^n, nPr and nCr.
+# Shift 10^n/e^n and the infix nPr/nCr operators shown on the physical keys.
 anchor = 'else if(action==="fraction")$("result").textContent=fraction(ans);'
 replacement = '''else if(action==="fraction")$("result").textContent=fraction(ans);
  else if(action==="pow10")add("10^(");else if(action==="powe")add("e^(");
@@ -48,12 +42,14 @@ replacement = '''else if(action==="fraction")$("result").textContent=fraction(an
 if anchor in s and 'action==="pow10"' not in s:
     s = s.replace(anchor, replacement, 1)
 
-# Evaluate scientific notation, Euler's constant, and infix P/C operators.
+# EXP input such as 4 EXP 75 becomes 4*10^75 during evaluation; the Alpha e
+# constant is mapped to Math.E.
 old = 's=s.replace(/E/g,"e");'
 new = 's=s.replace(/(\\d+(?:\\.\\d+)?)[Ee]([+\\-]?\\d+)/g,"($1*10**($2))");s=s.replace(/\\be\\b/g,"Math.E");'
 if old in s and '10**($2)' not in s:
     s = s.replace(old, new, 1)
 
+# Convert 10P3 and 5C2 to the existing npr/ncr helpers.
 old = 's=s.replace(/(\\d+(?:\\.\\d+)?)!/g,(m,n)=>"fact("+n+")");'
 new = '''s=s.replace(/(\\d+(?:\\.\\d+)?)P(\\d+(?:\\.\\d+)?)/g,(m,n,r)=>"npr("+n+","+r+")");
  s=s.replace(/(\\d+(?:\\.\\d+)?)C(\\d+(?:\\.\\d+)?)/g,(m,n,r)=>"ncr("+n+","+r+")");
