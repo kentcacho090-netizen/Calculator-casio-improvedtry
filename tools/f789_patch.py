@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# Batch 1: repair only already-present Shift dispatch and mappings.
 p = Path('index.html')
 s = p.read_text(encoding='utf-8')
 
@@ -46,8 +47,7 @@ if old not in s:
     raise SystemExit('missing expected doShift anchor')
 s = s.replace(old, new, 1)
 
-# The current x!/percent cases at the end of doShift become redundant after the
-# centralized implementation above; remove only the exact duplicate sequence.
+# Remove only the redundant duplicate x!/percent tail cases.
 s = s.replace('else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="," )add(",");',
               'else if(action==="," )add(",");', 1)
 
