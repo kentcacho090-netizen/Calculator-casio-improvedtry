@@ -9,6 +9,7 @@ def rep(old, new):
         raise SystemExit(f'missing expected source fragment: {old[:100]}')
     s = s.replace(old, new, 1)
 
+# Correct the physical secondary-key metadata.
 rep('data-action="rcl"><span class="sub o">STO</span>RCL',
     'data-action="rcl" data-shift="sto"><span class="sub o">STO</span>RCL')
 rep('data-v="+"><span class="sub o">Pol(</span>+',
@@ -17,23 +18,39 @@ rep('data-v="−"><span class="sub o">Rec(</span>−',
     'data-v="−" data-shift="rec"><span class="sub o">Rec(</span>−')
 rep('data-v=")" data-shift=", " data-alpha="X"',
     'data-v=")" data-shift="," data-alpha="X"')
-rep('let expr="",ans=0,memory=0,shift=false,alpha=false,mode="COMP",',
-    'let expr="",ans=0,memory=0,shift=false,alpha=false,storePending=false,rclPending=false,dmsStage=0,mode="COMP",')
-rep('$("status").textContent=(shift?"S ":"")+(alpha?"A ":"")+(memory!==0?"M ":"")+',
-    '$("status").textContent=(storePending?"STO ":"")+(rclPending?"RCL ":"")+(shift?"S ":"")+(alpha?"A ":"")+(memory!==0?"M ":"")+')
-rep('function transform(s){\n s=s.replace(/(\\d+(?:\\.\\d+)?)P',
-    'function dmsToDecimal(s){return s.replace(/(\\d+(?:\\.\\d+)?)°(?:\\s*(\\d+(?:\\.\\d+)?)′)?(?:\\s*(\\d+(?:\\.\\d+)?)″)?/g,(m,d,mi="0",se="0")=>String(+d+(+mi)/60+(+se)/3600))}\nfunction transform(s){\n s=dmsToDecimal(s);\n s=s.replace(/(\\d+(?:\\.\\d+)?)P')
-rep('else if(action==="npr")add("P");else if(action==="ncr")add("C");else if(action==="x!")',
-    'else if(action==="npr")add("P");else if(action==="ncr")add("C");else if(action==="sto"){storePending=true;rclPending=false;render()}else if(action==="pol")add("Pol(");else if(action==="rec")add("Rec(");else if(action==="x!")')
-rep('else if(action==="sum")$("result").textContent="Σ";else if(action==="drg")$("result").textContent="DRG▶";',
-    'else if(action==="sum")$("result").textContent="Σ";else if(action==="drg"){const v=ans,old=angle,next=old==="DEG"?"RAD":old==="RAD"?"GRAD":"DEG";const conv=old==="DEG"?v*Math.PI/180:old==="RAD"?v*200/Math.PI:v*180/200;angle=next;ans=conv;$("result").textContent=formatNumber(conv);render()};')
-rep('else if(a==="exp")add("E");else if(a==="dms")add("°′″");',
-    'else if(a==="exp")add("E");else if(a==="dms"){const mark=dmsStage===0?"°":dmsStage===1?"′":"″";add(mark);dmsStage=(dmsStage+1)%3;}')
-rep('function pressButton(b){\n const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;',
-    'function pressButton(b){\n const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;\n if(storePending){if(alphaVal!==undefined){V[alphaVal]=ans;storePending=false;alpha=false;render();return}storePending=false;render()}\n if(rclPending){if(alphaVal!==undefined){const v=V[alphaVal]??0;rclPending=false;alpha=false;add(String(v));return}rclPending=false;render()}')
-rep('else if(a==="rcl")add(String(memory));',
-    'else if(a==="rcl"){rclPending=true;render()}')
-rep('s=s.replace(/(\\d+(?:\\.\\d+)?)C(\\d+(?:\\.\\d+)?)/g,(m,n,r)=>"ncr("+n+","+r+")");',
-    's=s.replace(/(\\d+(?:\\.\\d+)?)C(\\d+(?:\\.\\d+)?)/g,(m,n,r)=>"ncr("+n+","+r+")).replace(/Pol\\(([^,]+),([^\\)]+)\\)/g,(m,x,y)=>"Math.hypot("+x+","+y+")).replace(/Rec\\(([^,]+),([^\\)]+)\\)/g,(m,r,t)=>"("+r+"*Math.cos("+toRadExpr(t)+"))");')
+
+# Inject a small, isolated Batch 3 compatibility layer before the existing IIFE closes.
+# This avoids rewriting the already-verified calculation engine.
+snippet = r'''
+let b3Store=false,b3Recall=false,b3DmsStage=0;
+function b3DmsToDecimal(s){return s.replace(/(\d+(?:\.\d+)?)°(?:\s*(\d+(?:\.\d+)?)′)?(?:\s*(\d+(?:\.\d+)?)″)?/g,(m,d,mi='0',se='0')=>String(+d+(+mi)/60+(+se)/3600));}
+function b3Pol(x,y){return Math.hypot(x,y);}
+function b3Rec(r,t){return r*Math.cos(rad(t));}
+function b3Calculate(){
+ try{let source=b3DmsToDecimal(expr).replace(/Pol\(([^,]+),([^\)]+)\)/g,(m,x,y)=>String(b3Pol(evalExpr(x),evalExpr(y)))).replace(/Rec\(([^,]+),([^\)]+)\)/g,(m,r,t)=>String(b3Rec(evalExpr(r),evalExpr(t))));expr=source;calculate();}
+ catch(e){$("result").textContent="Math ERROR"}
+}
+function b3VariableButton(b){
+ const old=b.onclick;
+ b.onclick=()=>{const k=b.dataset.alpha;if(b3Store){V[k]=ans;b3Store=false;alpha=false;render();return}if(b3Recall){add(String(V[k]??0));b3Recall=false;alpha=false;render();return}old();};
+}
+const b3Rcl=document.querySelector('[data-action="rcl"]');
+if(b3Rcl){b3Rcl.onclick=()=>{if(shift){b3Store=true;b3Recall=false;shift=false;render();return}b3Recall=true;render();};}
+for(const b of document.querySelectorAll('[data-alpha]')) b3VariableButton(b);
+const b3Plus=document.querySelector('[data-v="+"]');
+if(b3Plus){const old=b3Plus.onclick;b3Plus.onclick=()=>{if(shift){add('Pol(');shift=false;render();return}old();};}
+const b3Minus=document.querySelector('[data-v="−"]');
+if(b3Minus){const old=b3Minus.onclick;b3Minus.onclick=()=>{if(shift){add('Rec(');shift=false;render();return}old();};}
+const b3Paren=document.querySelector('[data-v=")"]');
+if(b3Paren){const old=b3Paren.onclick;b3Paren.onclick=()=>{if(shift){add(',');shift=false;render();return}old();};}
+const b3Dms=document.querySelector('[data-action="dms"]');
+if(b3Dms){b3Dms.onclick=()=>{const mark=b3DmsStage===0?'°':b3DmsStage===1?'′':'″';add(mark);b3DmsStage=(b3DmsStage+1)%3;};}
+for(const id of ['ans','ansTop']){const b=$(id);if(b){b.onclick=()=>{if(shift){const old=angle;const v=ans;const next=old==='DEG'?'RAD':old==='RAD'?'GRAD':'DEG';ans=old==='DEG'?v*Math.PI/180:old==='RAD'?v*200/Math.PI:v*180/200;angle=next;shift=false;$("result").textContent=formatNumber(ans);render();return}add('Ans');};}}
+$("equals").onclick=b3Calculate;
+'''
+marker='\n})();'
+if marker not in s:
+    raise SystemExit('IIFE closing marker not found')
+s=s.replace(marker,'\n'+snippet+marker,1)
 p.write_text(s)
 print('Batch 3 patch applied')
