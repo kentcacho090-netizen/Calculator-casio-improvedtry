@@ -62,10 +62,12 @@ function add(v){expr+=v;render();}
 function clear(){expr="";$("result").textContent="0";render();}
 function toJS(s){
  s=s.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-").replace(/π/g,"Math.PI");
+ s=s.replace(/Math\.abs\(/g,"Math.abs(");
  s=s.replace(/√\(/g,"Math.sqrt(").replace(/log\(/g,"Math.log10(").replace(/ln\(/g,"Math.log(");
  s=s.replace(/sin\(([^()]*)\)/g,(m,x)=>"Math.sin(("+x+")*"+(angle==="DEG"?"Math.PI/180":angle==="GRAD"?"Math.PI/200":"1")+")");
  s=s.replace(/cos\(([^()]*)\)/g,(m,x)=>"Math.cos(("+x+")*"+(angle==="DEG"?"Math.PI/180":angle==="GRAD"?"Math.PI/200":"1")+")");
  s=s.replace(/tan\(([^()]*)\)/g,(m,x)=>"Math.tan(("+x+")*"+(angle==="DEG"?"Math.PI/180":angle==="GRAD"?"Math.PI/200":"1")+")");
+ s=s.replace(/Abs\(/g,"Math.abs(");
  s=s.replace(/\^/g,"**");
  if(!/^[0-9+\-*/().\sA-Za-z]+$/.test(s))throw Error();
  return s;
@@ -75,15 +77,30 @@ function calculate(){
  catch(e){$("result").textContent="Math ERROR";}
 }
 function menu(type){
- const list=type==="apps"?["COMP","CPLX","STAT","BASE","EQN","TABLE","MATX","VCTR"]:["MathIO","LineIO","DEG","RAD","GRAD","Fix","Sci","Norm","Reset"];
- $("title").textContent=type==="apps"?"APPS":"SET-UP";const box=$("choices");box.innerHTML="";menuIndex=0;
- list.forEach((name,i)=>{const b=document.createElement("button");b.className="choice";b.type="button";b.textContent=(i+1)+": "+name;b.onclick=()=>{if(type==="apps")mode=name;else if(name==="DEG")angle="DEG";else if(name==="RAD")angle="RAD";else if(name==="GRAD")angle="GRAD";else if(name==="Reset"){expr="";last=0;memory=0;$("result").textContent="0";} $("overlay").classList.remove("show");render();};box.appendChild(b);});
+ let list;
+ if(type==="mode") list=["COMP","CPLX","STAT","BASE","EQN","TABLE","MATX","VCTR"];
+ else if(type==="setup") list=["MathIO","LineIO","Deg","Rad","Gra","Fix","Sci","Norm","Reset"];
+ else {
+   const apps={
+     COMP:["π","Σ","Max","Min","Q...r","Mod","LCM","GCD"],
+     CPLX:["r∠θ","a+bi","Arg","Conjg","Real","Imag"],
+     STAT:["Type","Data","Edit","S-SUM","S-VAR","S-PTS","Distr","Reg"],
+     BASE:["and","or","xor","xnor","Not","Neg","d","h","b","o"],
+     EQN:["Linear","Quadratic","Cubic","Quartic"],
+     TABLE:["f(x)","g(x)"],
+     MATX:["MatA","MatB","MatC","Det","Trn","Dim"],
+     VCTR:["VctA","VctB","VctC","Dot","Cross","Angle"]
+   };
+   list=apps[mode]||apps.COMP;
+ }
+ $("title").textContent=type==="apps"?"APPS":type==="mode"?"MODE":"SET-UP";const box=$("choices");box.innerHTML="";menuIndex=0;
+ list.forEach((name,i)=>{const b=document.createElement("button");b.className="choice";b.type="button";b.textContent=(i+1)+": "+name;b.onclick=()=>{if(type==="mode"){mode=name;expr="";$("result").textContent="0";}else if(type==="setup"){if(name==="Deg")angle="DEG";else if(name==="Rad")angle="RAD";else if(name==="Gra")angle="GRAD";else if(name==="Reset"){expr="";last=0;memory=0;$("result").textContent="0";}}else if(name==="π")add("π");else if(name==="Max")add("Math.max(");else if(name==="Min")add("Math.min(");else if(name==="Mod")add("%"); $("overlay").classList.remove("show");render();};box.appendChild(b);});
  $("overlay").classList.add("show");
 }
 function move(d){if(!$("overlay").classList.contains("show"))return;const a=[...$("choices").children];if(!a.length)return;menuIndex=(menuIndex+d+a.length)%a.length;a[menuIndex].focus();}
-$("shift").onclick=()=>{shift=!shift;alpha=false;render();};$("alpha").onclick=()=>{alpha=!alpha;shift=false;render();};$("apps").onclick=()=>menu("apps");$("mode").onclick=()=>menu("mode");$("cancel").onclick=()=>$("overlay").classList.remove("show");$("up").onclick=()=>move(-1);$("down").onclick=()=>move(1);$("left").onclick=()=>move(-1);$("right").onclick=()=>move(1);$("on").onclick=clear;$("ca").onclick=()=>{expr="";last=0;memory=0;$("result").textContent="0";render();};$("del").onclick=()=>{expr=expr.slice(0,-1);render();};$("equals").onclick=calculate;$("ans").onclick=()=>add(String(last));$("ansTop").onclick=()=>add(String(last));
+$("shift").onclick=()=>{shift=!shift;alpha=false;render();};$("alpha").onclick=()=>{alpha=!alpha;shift=false;render();};$("apps").onclick=()=>menu("apps");$("mode").onclick=()=>{if(shift){shift=false;render();menu("setup");}else menu("mode");};$("cancel").onclick=()=>$("overlay").classList.remove("show");$("up").onclick=()=>move(-1);$("down").onclick=()=>move(1);$("left").onclick=()=>move(-1);$("right").onclick=()=>move(1);$("on").onclick=clear;$("ca").onclick=()=>{expr="";last=0;memory=0;$("result").textContent="0";render();};$("del").onclick=()=>{expr=expr.slice(0,-1);render();};$("equals").onclick=calculate;$("ans").onclick=()=>add(String(last));$("ansTop").onclick=()=>add(String(last));
 document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>add(b.dataset.v));
-document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{const f=b.dataset.f;if(f==="sqrt")add("√(");else if(f==="square")add("^2");else if(f==="cube")add("^3");else if(f==="log")add("log(");else if(f==="ln")add("ln(");else if(f==="sin")add("sin(");else if(f==="cos")add("cos(");else if(f==="tan")add("tan(");else if(f==="abs")add("Math.abs(");else if(f==="inv")add("^(−1)");else if(f==="neg")add("−");else if(f==="rcl")add(String(memory));else if(f==="mplus")memory+=last;else if(f==="dms")add("°");else if(f==="calc")$("result").textContent="CALC";else if(f==="eng")$("result").textContent="ENG";else if(f==="fraction")$("result").textContent="F↔D";else if(f==="fd")$("result").textContent="F↔D";else if(f==="hyp")$("result").textContent="HYP";});
+document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{const f=b.dataset.f;if(f==="sqrt")add("√(");else if(f==="square")add("^2");else if(f==="cube")add("^3");else if(f==="log")add("log(");else if(f==="ln")add("ln(");else if(f==="sin")add("sin(");else if(f==="cos")add("cos(");else if(f==="tan")add("tan(");else if(f==="abs")add("Abs(");else if(f==="inv")add("1/(");else if(f==="neg")add("−");else if(f==="rcl")add(String(memory));else if(f==="mplus")memory+=last;else if(f==="dms")add("°");else if(f==="calc")$("result").textContent="CALC";else if(f==="eng")$("result").textContent="ENG";else if(f==="fraction")$("result").textContent="F↔D";else if(f==="fd")$("result").textContent="F↔D";else if(f==="hyp")$("result").textContent="HYP";});
 render();
 })();
 </script>
