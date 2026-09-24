@@ -78,7 +78,9 @@ assertEq(text(), '120', 'Shift x!');
 // Shift inverse sine in DEG: sin^-1(0.5) = 30.
 byId.get('shift').click();
 click(b => b.dataset.action === 'sin', 'sin / sin^-1');
-click(b => b.dataset.v === '0.5', '0.5');
+click(b => b.dataset.v === '0', '0');
+click(b => b.dataset.v === '.', '.');
+click(b => b.dataset.v === '5', '5');
 byId.get('equals').click();
 assertEq(text(), '30', 'Shift sin^-1 in DEG');
 
