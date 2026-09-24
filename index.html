@@ -233,7 +233,7 @@ function doShift(action){
  else if(action==="fraction")$("result").textContent=fraction(ans);else if(action==="mminus"){memory-=ans;render()}
  else if(action==="sum")$("result").textContent="Σ";else if(action==="drg")$("result").textContent="DRG▶";
  else if(action==="round")$("result").textContent=Math.round(ans);else if(action==="rand"){ans=Math.random();$("result").textContent=ans.toFixed(3)}
- else if(action==="pi")add("π");else if(action==="eng")$("result").textContent=ans===0?"0":(ans/10**(Math.floor(Math.log10(Math.abs(ans))/3)*3))+"×10^"+Math.floor(Math.log10(Math.abs(ans))/3)*3);
+ else if(action==="pi")add("π");else if(action==="eng"){if(ans===0)$("result").textContent="0";else{const p=Math.floor(Math.log10(Math.abs(ans))/3)*3;$("result").textContent=(ans/10**p)+"×10^"+p}}
  else if(action==="solve")solve();else if(action==="inv")add("!");
  else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="," )add(",");
  else if(action==="CALC")solve();
