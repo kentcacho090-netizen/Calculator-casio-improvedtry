@@ -1,0 +1,48 @@
+name: Apply F-789SGA Batch 3
+
+on:
+  push:
+    paths:
+      - 'tools/f789_batch3_patch.py'
+      - 'tools/test_f789_batch3.mjs'
+      - '.github/workflows/f789-batch3-apply.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  KNOWN_GOOD_INDEX: 37d5262b739c2b05b4c0da83e3d1fe09215afc18
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply Batch 3 patch
+        run: python tools/f789_batch3_patch.py
+      - name: Syntax check
+        run: |
+          node -e "const fs=require('fs'); const s=fs.readFileSync('index.html','utf8').match(/<script>([\\s\\S]*?)<\\/script>/)[1]; new Function(s); console.log('JS syntax OK')"
+      - name: Run Batch 3 regression tests
+        run: node tools/test_f789_batch3.mjs
+      - name: Commit verified Batch 3
+        if: success()
+        run: |
+          if git diff --quiet -- index.html; then echo 'No index change needed'; exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Implement verified F-789SGA Batch 3 mappings and conversions'
+          git push
+      - name: Roll back failed Batch 3
+        if: failure()
+        run: |
+          git checkout "$KNOWN_GOOD_INDEX" -- index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Rollback unverified F-789SGA Batch 3'
+          git push
