@@ -45,7 +45,9 @@ const document = {
 };
 byId.get('choices').querySelectorAll = () => [];
 
-const context = { document, window: {}, console, Math, Number, String, Object, Array, RegExp, Error, Function, parseInt, parseFloat, isNaN, isFinite };
+// Let vm provide its own Function constructor so evalExpr() executes inside the
+// same realm as the calculator script and receives its local fact/Math args.
+const context = { document, window: {}, console };
 vm.createContext(context);
 vm.runInContext(script, context, { timeout: 1000 });
 
