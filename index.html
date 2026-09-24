@@ -12,11 +12,11 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 .head{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 9px;color:#222}.canon{font-size:21px;font-weight:800}.model{font-size:11px}
 .lcd{height:102px;margin:2px 5px 7px;background:#dce6d7;border:5px solid #111;border-radius:8px;padding:5px 8px;font-family:monospace;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
 .status{height:14px;font-size:10px;white-space:nowrap}.expr{height:25px;text-align:right;white-space:nowrap;overflow:hidden}.result{height:28px;text-align:right;font-size:22px;white-space:nowrap;overflow:hidden}
-.controls{height:104px;position:relative;margin:0 3px}.k{position:relative;border:1px solid #777;border-radius:6px;background:#deded9;color:#222;font-weight:700;box-shadow:0 1px 2px #0008;touch-action:manipulation;cursor:pointer}.k:active{transform:scale(.96);filter:brightness(.9)}
-.sub{position:absolute;top:1px;left:1px;right:1px;font-size:6.5px;text-align:center;white-space:nowrap;overflow:hidden;line-height:9px}.o{color:#e5a027}.b{color:#55a8dc}.g{color:#58a05d}.red{color:#d13b36}
-.dark{background:#3c403f;color:#fff}.shift{background:#4b4f4d}.alpha{background:#4b4f4d}.shift{color:#e5a027}.alpha{color:#55a8dc}.nav{background:#35393c;color:#fff;border-radius:50%;font-size:16px}.activeS{box-shadow:inset 0 0 0 2px #e5a027,0 0 8px #e5a02788}.activeA{box-shadow:inset 0 0 0 2px #55a8dc,0 0 8px #55a8dc88}
+.controls{height:104px;position:relative;margin:0 3px}.k{position:relative;border:2px solid #222;border-radius:7px;background:linear-gradient(#fdfdfb,#e5e5df);color:#171717;font-weight:700;box-shadow:0 2px 2px #0005;touch-action:manipulation;cursor:pointer}.k:active{transform:scale(.96);filter:brightness(.9)}
+.sub{position:absolute;top:-15px;left:1px;right:1px;font-size:8px;text-align:center;white-space:nowrap;overflow:visible;line-height:10px;font-weight:700;z-index:3}.o{color:#e5a027}.b{color:#55a8dc}.g{color:#58a05d}.red{color:#d13b36}
+.dark{background:#3b3e3d;color:#fff}.shift,.alpha{background:#222;color:#fff}.shift{color:#e5a027}.alpha{color:#55a8dc}.blankkey{font-size:0}.nav{background:#35393c;color:#fff;border-radius:50%;font-size:16px}.activeS{box-shadow:inset 0 0 0 2px #e5a027,0 0 8px #e5a02788}.activeA{box-shadow:inset 0 0 0 2px #55a8dc,0 0 8px #55a8dc88}
 .ctrl{position:absolute;width:18.5%;height:40px}.c1{left:0;top:0}.c2{left:20.5%;top:0}.c3{left:41%;top:0}.c4{right:20.5%;top:0}.c5{right:0;top:0}.apps{left:0;top:48px}.left{left:31%;top:40px}.right{left:51%;top:40px}.down{left:41%;top:59px}.convt{right:0;top:48px}
-.grid6{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:4px 3px}.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:5px 3px}.fn{height:39px;font-size:10px;padding:11px 1px 2px;background:linear-gradient(#f7f7f3,#d7d8d4)}.num{height:46px;font-size:19px;padding-top:11px;background:linear-gradient(#fafaf7,#deded9)}.op{font-size:18px}
+.grid6{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:18px 3px 7px}.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:6px 3px}.fn{height:43px;font-size:11px;padding:12px 1px 2px;background:linear-gradient(#f7f7f3,#d7d8d4)}.num{height:46px;font-size:19px;padding-top:11px;background:linear-gradient(#fafaf7,#deded9)}.op{font-size:18px}
 .overlay{position:absolute;inset:0;background:#111b;backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:20px;border-radius:19px;z-index:20}.overlay.show{display:flex}.panel{width:86%;background:#e8e9e3;border:2px solid #666;border-radius:10px;padding:11px;box-shadow:0 10px 30px #0009}.panel h3{margin:0 0 8px;font-size:14px}.choice{display:block;width:100%;padding:9px;margin:3px 0;border:1px solid #888;border-radius:5px;background:#f5f5ef;text-align:left;font-weight:700}.cancel{width:100%;padding:8px;margin-top:5px;border:0;border-radius:5px;background:#4b4f51;color:#fff;font-weight:700}
 </style>
 </head>
@@ -25,31 +25,53 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 <div class="solar"></div><div class="head"><span class="canon">Canon</span><span class="model">F-789SGA</span></div>
 <div class="lcd"><div class="status" id="status">MATH  COMP  DEG</div><div class="expr" id="expr"></div><div class="result" id="result">0</div></div>
 <div class="controls">
-<button class="k ctrl c1 dark shift" id="shift"><span class="sub o">Shift</span>SHIFT</button>
-<button class="k ctrl c2 dark alpha" id="alpha"><span class="sub b">Alpha</span>ALPHA</button>
+<button class="k ctrl c1 dark shift blankkey" id="shift"><span class="sub o">Shift</span></button>
+<button class="k ctrl c2 dark alpha blankkey" id="alpha"><span class="sub b">Alpha</span></button>
 <button class="k ctrl c3 nav" id="up">▲</button>
 <button class="k ctrl c4 dark" id="mode"><span class="sub o">SET-UP</span>MODE</button>
 <button class="k ctrl c5 dark" id="on">ON</button>
-<button class="k ctrl apps" id="apps"><span class="sub o">Apps</span>APPS</button>
+<button class="k ctrl apps blankkey" id="apps"><span class="sub o">Apps</span></button>
 <button class="k ctrl left nav" id="left">◀</button><button class="k ctrl right nav" id="right">▶</button>
 <button class="k ctrl down nav" id="down">▼</button><button class="k ctrl convt" id="convt"><span class="sub g">G↔T</span>CONVT</button>
 </div>
 <div class="grid6">
-<button class="k fn" data-f="calc"><span class="sub o">Solve</span>CALC</button><button class="k fn" data-f="inv"><span class="sub o">x!</span>x⁻¹</button><button class="k fn" data-f="fraction"><span class="sub b">d/c↔b/c</span>F↔D</button><button class="k fn" data-f="eng"><span class="sub o">↔ENG</span>ENG</button><button class="k fn" data-v="÷"><span class="sub g">DEC</span>÷</button><button class="k fn" data-f="sqrt"><span class="sub g">HEX</span>√</button>
+<button class="k fn" data-action="calc"><span class="sub o">Solve</span>CALC</button>
+<button class="k fn" data-action="inv"><span class="sub o">x!</span>x⁻¹</button>
+<button class="k fn" data-action="fraction"><span class="sub b">d/c↔a b/c</span>F↔D</button>
+<button class="k fn" data-action="eng"><span class="sub o">↔ENG</span>ENG</button>
+<button class="k fn" data-v="÷"><span class="sub g">DEC</span>÷</button>
+<button class="k fn" data-action="sqrt"><span class="sub g">HEX</span>√</button>
 </div>
 <div class="grid6">
-<button class="k fn" data-f="square"><span class="sub g">BIN</span>x²</button><button class="k fn" data-f="cube"><span class="sub g">OCT</span>x³</button><button class="k fn" data-f="log"><span class="sub b">10ⁿ</span>log</button><button class="k fn" data-f="ln"><span class="sub b">eⁿ</span>ln</button><button class="k fn" data-f="neg"><span class="sub b">A</span>(−)</button><button class="k fn" data-f="dms"><span class="sub b">B</span>°′″</button>
+<button class="k fn" data-action="square"><span class="sub g">BIN</span>x²</button>
+<button class="k fn" data-action="cube"><span class="sub g">OCT</span>x³</button>
+<button class="k fn" data-action="log"><span class="sub b">10ⁿ</span>log</button>
+<button class="k fn" data-action="ln"><span class="sub b">eⁿ</span>ln</button>
+<button class="k fn" data-action="neg" data-alpha="A"><span class="sub b">A</span>(−)</button>
+<button class="k fn" data-action="dms" data-alpha="B"><span class="sub b">B</span>°′″</button>
 </div>
 <div class="grid6">
-<button class="k fn" data-f="hyp"><span class="sub b">C</span>hyp</button><button class="k fn" data-f="sin"><span class="sub b">D</span>sin</button><button class="k fn" data-f="cos"><span class="sub b">E</span>cos</button><button class="k fn" data-f="tan"><span class="sub b">F</span>tan</button><button class="k fn" data-f="rcl"><span class="sub o">STO</span>RCL</button><button class="k fn" data-f="abs"><span class="sub b">%</span>Abs</button>
+<button class="k fn" data-action="hyp" data-alpha="C"><span class="sub b">C</span>hyp</button>
+<button class="k fn" data-action="sin" data-shift="asin" data-alpha="D"><span class="sub o">sin⁻¹</span><span class="sub b" style="top:-5px">D</span>sin</button>
+<button class="k fn" data-action="cos" data-shift="acos" data-alpha="E"><span class="sub o">cos⁻¹</span><span class="sub b" style="top:-5px">E</span>cos</button>
+<button class="k fn" data-action="tan" data-shift="atan" data-alpha="F"><span class="sub o">tan⁻¹</span><span class="sub b" style="top:-5px">F</span>tan</button>
+<button class="k fn" data-action="rcl"><span class="sub o">STO</span>RCL</button>
+<button class="k fn" data-action="abs"><span class="sub o">%</span><span class="sub b" style="top:-5px">%</span>Abs</button>
 </div>
 <div class="grid6">
-<button class="k fn" data-v="(">(</button><button class="k fn" data-v=")">)</button><button class="k fn" data-f="fd"><span class="sub b">X↔Y</span>F↔D</button><button class="k fn" data-f="mplus"><span class="sub b">M−</span>M+</button><button class="k fn" data-v="e"><span class="sub b">Σ</span>EXP</button><button class="k fn" id="ansTop"><span class="sub b">DRG▶</span>Ans</button>
+<button class="k fn" data-v="("><span class="sub o">%</span>(</button>
+<button class="k fn" data-v=")" data-shift=", " data-alpha="X"><span class="sub o">,</span><span class="sub b" style="top:-5px">X</span>)</button>
+<button class="k fn" data-action="fraction" data-shift="fraction"><span class="sub o">a b/c↔d/c</span><span class="sub b" style="top:-5px">Y</span>F↔D</button>
+<button class="k fn" data-action="mplus" data-shift="mminus" data-alpha="M"><span class="sub o">M−</span><span class="sub b" style="top:-5px">M</span>M+</button>
+<button class="k fn" data-v="e" data-shift="sum"><span class="sub b">Σ</span>EXP</button>
+<button class="k fn" id="ansTop" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button>
 </div>
-<div class="grid5"><button class="k num" data-v="7">7</button><button class="k num" data-v="8">8</button><button class="k num" data-v="9">9</button><button class="k" id="del"><span class="sub o">CLR</span>DEL</button><button class="k red" id="ca"><span class="sub o">OFF</span>CA</button></div>
+<div class="grid5">
+<button class="k num" data-v="7">7</button><button class="k num" data-v="8">8</button><button class="k num" data-v="9">9</button><button class="k num" id="del"><span class="sub o">CLR</span>DEL</button><button class="k num red" id="ca"><span class="sub o">OFF</span>CA</button>
+</div>
 <div class="grid5"><button class="k num" data-v="4">4</button><button class="k num" data-v="5">5</button><button class="k num" data-v="6">6</button><button class="k num op" data-v="×">×</button><button class="k num op" data-v="÷">÷</button></div>
 <div class="grid5"><button class="k num" data-v="1">1</button><button class="k num" data-v="2">2</button><button class="k num" data-v="3">3</button><button class="k num op" data-v="+">+</button><button class="k num op" data-v="−">−</button></div>
-<div class="grid5"><button class="k num" data-v="0">0</button><button class="k num" data-v=".">.</button><button class="k num" data-v="e">EXP</button><button class="k num" id="ans">Ans</button><button class="k num op" id="equals">=</button></div>
+<div class="grid5"><button class="k num" data-v="0" data-shift="round">0</button><button class="k num" data-v="." data-shift="rand"><span class="sub o">Rand i-Rand</span>.</button><button class="k num" data-v="e" data-shift="pi" data-alpha="e"><span class="sub o">π</span><span class="sub b">e</span>EXP</button><button class="k num" id="ans" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button><button class="k num op" id="equals">=</button></div>
 <div class="overlay" id="overlay"><div class="panel"><h3 id="title">MODE</h3><div id="choices"></div><button class="cancel" id="cancel">CANCEL</button></div></div>
 </div>
 <script>
@@ -195,9 +217,40 @@ function inv(a){let n=a.length,m=a.map((r,i)=>r.concat(Array.from({length:n},(_,
 function matrix(n){return field("MATX "+n,[["Matrix rows; columns comma-separated","v","1,2;3,4"]],()=>{let a=$("v").value.split(";").map(r=>r.split(",").map(Number)),z=n==="Det"?det(a):n==="Trn"?trans(a):n==="Inv"?inv(a):n==="Ide"?a.map((r,i)=>r.map((_,j)=>i===j?1:0)):a;$("result").textContent=JSON.stringify(z)})}
 function vector(n){return field("VCTR "+n,[["A","a","1,2,3"],["B","b","4,5,6"]],()=>{let a=$("a").value.split(",").map(Number),b=$("b").value.split(",").map(Number);if(n==="Dot")$("result").textContent=a.reduce((s,v,i)=>s+v*b[i],0);else if(n==="Cross"){let z=[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];$("result").textContent=JSON.stringify(z)}else if(n==="Angle")$("result").textContent=formatNumber(fromRad(Math.acos(a.reduce((s,v,i)=>s+v*b[i],0)/(Math.hypot(...a)*Math.hypot(...b)))));})}
 function solve(){return field("SOLVE",[["Equation in X","q","x²-5x+6"],["Initial X","x","1"]],()=>{let q=$("q").value.replace(/²/g,"^2"),x=+$("x").value;for(let i=0;i<50;i++){let f=t=>evalExpr(q.replace(/x/g,"("+t+")")),h=1e-6,df=(f(x+h)-f(x-h))/(2*h);if(Math.abs(df)<1e-14)throw Error();let nx=x-f(x)/df;if(Math.abs(nx-x)<1e-10){x=nx;break}x=nx}ans=x;$("result").textContent=formatNumber(x)})}
-$("shift").onclick=()=>{shift=!shift;alpha=false;render()};$("alpha").onclick=()=>{alpha=!alpha;shift=false;render()};$("mode").onclick=()=>shift?(shift=false,setup()):modeMenu();$("apps").onclick=apps;$("cancel").onclick=()=>$("overlay").classList.remove("show");$("up").onclick=()=>{};$("down").onclick=()=>{};$("left").onclick=()=>{if(history.length){histPos=Math.min(history.length-1,histPos+1);expr=history[histPos].e;render()}};$("right").onclick=()=>{if(history.length){histPos=Math.max(-1,histPos-1);expr=histPos<0?"":history[histPos].e;render()}};$("on").onclick=clearEntry;$("ca").onclick=allClear;$("del").onclick=()=>{expr=expr.slice(0,-1);render()};$("equals").onclick=calculate;$("ans").onclick=()=>add("Ans");$("ansTop").onclick=()=>add("Ans");$("convt").onclick=()=>field("CONVT",[["Value","v","5"]],()=>{$("result").textContent=$("v").value});
-document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>add(b.dataset.v));
-document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{let f=b.dataset.f;if(f==="calc")solve();else if(f==="sqrt")add("√(");else if(f==="square")add("^2");else if(f==="cube")add("^3");else if(f==="log")add("log(");else if(f==="ln")add("ln(");else if(f==="sin")add(shift?"sin⁻¹(":"sin(");else if(f==="cos")add(shift?"cos⁻¹(":"cos(");else if(f==="tan")add(shift?"tan⁻¹(":"tan(");else if(f==="hyp")add(shift?"cosh(":"sinh(");else if(f==="abs")add("Abs(");else if(f==="inv")add("1/(");else if(f==="neg")add("−");else if(f==="pi")add("π");else if(f==="rcl")add(String(memory));else if(f==="mplus"){memory+=ans;render()}else if(f==="dms")add("°");else if(f==="fraction")$("result").textContent=fraction(ans);else if(f==="eng"){$("result").textContent=ans===0?"0":(ans/10**(Math.floor(Math.log10(Math.abs(ans))/3)*3))+"×10^"+Math.floor(Math.log10(Math.abs(ans))/3)*3}});
+$("shift").onclick=()=>{shift=!shift;alpha=false;render()};
+$("alpha").onclick=()=>{alpha=!alpha;shift=false;render()};
+$("mode").onclick=()=>shift?(shift=false,setup()):modeMenu();
+$("apps").onclick=apps;$("cancel").onclick=()=>$("overlay").classList.remove("show");
+$("up").onclick=()=>{};$("down").onclick=()=>{};
+$("left").onclick=()=>{if(history.length){histPos=Math.min(history.length-1,histPos+1);expr=history[histPos].e;render()}};
+$("right").onclick=()=>{if(history.length){histPos=Math.max(-1,histPos-1);expr=histPos<0?"":history[histPos].e;render()}};
+$("on").onclick=clearEntry;$("ca").onclick=allClear;$("del").onclick=()=>{expr=expr.slice(0,-1);render()};
+$("equals").onclick=calculate;$("ans").onclick=()=>add("Ans");$("ansTop").onclick=()=>add("Ans");
+$("convt").onclick=()=>field("CONVT",[["Value","v","5"]],()=>{$("result").textContent=$("v").value});
+
+function doShift(action){
+ if(action==="asin")add("sin⁻¹(");else if(action==="acos")add("cos⁻¹(");else if(action==="atan")add("tan⁻¹(");
+ else if(action==="fraction")$("result").textContent=fraction(ans);else if(action==="mminus"){memory-=ans;render()}
+ else if(action==="sum")$("result").textContent="Σ";else if(action==="drg")$("result").textContent="DRG▶";
+ else if(action==="round")$("result").textContent=Math.round(ans);else if(action==="rand"){ans=Math.random();$("result").textContent=ans.toFixed(3)}
+ else if(action==="pi")add("π");else if(action==="eng")$("result").textContent=ans===0?"0":(ans/10**(Math.floor(Math.log10(Math.abs(ans))/3)*3))+"×10^"+Math.floor(Math.log10(Math.abs(ans))/3)*3);
+ else if(action==="solve")solve();else if(action==="inv")add("!");
+ else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="," )add(",");
+ else if(action==="CALC")solve();
+}
+function pressButton(b){
+ const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
+ if(alpha && alphaVal!==undefined){add(alphaVal);alpha=false;render();return}
+ if(shift && shiftVal!==undefined){shift=false;doShift(shiftVal);render();return}
+ const a=b.dataset.action;
+ if(a==="calc")solve();else if(a==="inv")add("1/(");else if(a==="fraction")$("result").textContent=fraction(ans);
+ else if(a==="eng")doShift("eng");else if(a==="sqrt")add("√(");else if(a==="square")add("^2");else if(a==="cube")add("^3");
+ else if(a==="log")add("log(");else if(a==="ln")add("ln(");else if(a==="neg")add("−");else if(a==="dms")add("°′″");
+ else if(a==="hyp")add(shift?"cosh(":"sinh(");else if(a==="sin")add("sin(");else if(a==="cos")add("cos(");else if(a==="tan")add("tan(");
+ else if(a==="rcl")add(String(memory));else if(a==="abs")add("Abs(");else if(a==="mplus"){memory+=ans;render()}
+}
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>pressButton(b));
+document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>pressButton(b));
 render();
 })();
 </script>
