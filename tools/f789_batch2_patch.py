@@ -49,13 +49,22 @@ new = 's=s.replace(/(\\d+(?:\\.\\d+)?)[Ee]([+\\-]?\\d+)/g,"($1*10**($2))");s=s.r
 if old in s and '10**($2)' not in s:
     s = s.replace(old, new, 1)
 
-# Convert 10P3 and 5C2 to the existing npr/ncr helpers.
-old = 's=s.replace(/(\\d+(?:\\.\\d+)?)!/g,(m,n)=>"fact("+n+")");'
-new = '''s=s.replace(/(\\d+(?:\\.\\d+)?)P(\\d+(?:\\.\\d+)?)/g,(m,n,r)=>"npr("+n+","+r+")");
+# Convert the physical infix forms before variable substitution. This is
+# important because C is also the Alpha C memory variable.
+transform_anchor = 'function transform(s){\n'
+transform_insert = '''function transform(s){
+ s=s.replace(/(\\d+(?:\\.\\d+)?)P(\\d+(?:\\.\\d+)?)/g,(m,n,r)=>"npr("+n+","+r+")");
  s=s.replace(/(\\d+(?:\\.\\d+)?)C(\\d+(?:\\.\\d+)?)/g,(m,n,r)=>"ncr("+n+","+r+")");
+'''
+if transform_anchor in s and 'function transform(s){\n s=s.replace(/(\\d+(?:\\.\\d+)?)P' not in s:
+    s = s.replace(transform_anchor, transform_insert, 1)
+
+# Keep the later P/C replacements idempotent for already-transformed expressions.
+old = 's=s.replace(/(\\d+(?:\\.\\d+)?)!/g,(m,n)=>"fact("+n+")");'
+new = '''s=s.replace(/(\\d+(?:\\.\\d+)?)P(\\d+(?:\\.\\d+)?)/g,(m,n,r)=>"npr("+n+","+r+");
+ s=s.replace(/(\\d+(?:\\.\\d+)?)C(\\d+(?:\\.\\d+)?)/g,(m,n,r)=>"ncr("+n+","+r+");
  s=s.replace(/(\\d+(?:\\.\\d+)?)!/g,(m,n)=>"fact("+n+")");'''
-if old in s and '?)P(\\d+' not in s:
-    s = s.replace(old, new, 1)
+# The existing later replacements are already present; do not duplicate them.
 
 old = 'return Function("fact","Math","return ("+js+")")(fact,Math);'
 new = 'return Function("fact","Math","npr","ncr","return ("+js+")")(fact,Math,npr,ncr);'
