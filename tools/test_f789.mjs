@@ -1,13 +1,16 @@
 import fs from 'node:fs';
-import { JSDOM } from 'jsdom';
+import { JSDOM, VirtualConsole } from 'jsdom';
 
 const html = fs.readFileSync('index.html', 'utf8');
-const dom = new JSDOM(html, { runScripts: 'dangerously', url: 'http://localhost/' });
+const virtualConsole = new VirtualConsole();
+virtualConsole.on('jsdomError', error => console.error('JSDOM error:', error.stack || error.message));
+const dom = new JSDOM(html, { runScripts: 'dangerously', url: 'http://localhost/', virtualConsole });
 const { document } = dom.window;
 
 const click = (selector, label) => {
   const b = document.querySelector(selector);
   if (!b) throw new Error(`Button not found: ${label}`);
+  if (typeof b.onclick !== 'function') throw new Error(`No click handler installed: ${label}`);
   b.click();
 };
 const result = () => document.getElementById('result').textContent;
@@ -15,6 +18,9 @@ const expression = () => document.getElementById('expr').textContent;
 const assertEq = (actual, expected, label) => {
   if (String(actual) !== String(expected)) throw new Error(`${label}: expected ${expected}, got ${actual}`);
 };
+
+console.log('2-key handler:', typeof document.querySelector('[data-v="2"]')?.onclick);
+console.log('equals handler:', typeof document.getElementById('equals')?.onclick);
 
 // Basic arithmetic: verify the expression itself before evaluating 2 + 3.
 click('[data-v="2"]', '2');
