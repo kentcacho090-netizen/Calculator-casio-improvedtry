@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'tools/f789_batch2_patch.py'
+      - 'tools/test_f789_batch2.mjs'
+      - 'package.json'
       - '.github/workflows/f789-batch2-apply.yml'
   workflow_dispatch:
 
@@ -20,24 +22,11 @@ jobs:
       - name: Apply idempotent Batch 2 patch
         run: python tools/f789_batch2_patch.py
 
-      - name: Verify patch markers
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          s = Path('index.html').read_text(encoding='utf-8')
-          checks = {
-              'pow10': 'data-shift="pow10"',
-              'powe': 'data-shift="powe"',
-              'npr': 'data-shift="npr"',
-              'ncr': 'data-shift="ncr"',
-              'EXP dispatch': 'else if(a==="exp")add("E")',
-              'scientific parser': '10**($2)',
-          }
-          missing = [name for name, marker in checks.items() if marker not in s]
-          if missing:
-              raise SystemExit('Missing Batch 2 markers: ' + ', '.join(missing))
-          print('Batch 2 marker verification passed')
-          PY
+      - name: Install test dependency
+        run: npm install --no-audit --no-fund
+
+      - name: Run Batch 2 runtime regression tests
+        run: node tools/test_f789_batch2.mjs
 
       - name: Commit applied patch
         run: |
