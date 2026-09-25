@@ -291,6 +291,7 @@ function baseAppend(value){
 function pressButton(b){
  const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
  if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
+ if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
  if(alpha && alphaVal!==undefined){
    if(mode==="BASE"){
      if(baseMode==="HEX" && /^[A-F]$/.test(alphaVal)) add(alphaVal);
