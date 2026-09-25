@@ -271,6 +271,7 @@ function pressButton(b){
  const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
  if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
  if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
+ if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
  if(alpha && alphaVal!==undefined){if(mode==="BASE" && /^[A-F]$/.test(alphaVal)){add(alphaVal);alpha=false;render();return}add(alphaVal);alpha=false;render();return}
  if(shift){
    if(shiftVal!==undefined){const sv=shiftVal;shift=false;doShift(sv);render();return}
