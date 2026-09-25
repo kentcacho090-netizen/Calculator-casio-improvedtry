@@ -276,13 +276,38 @@ function doShift(action){
  else if(action==="," )add(",");
  else if(action==="CALC")solve();
 }
+function baseDigitAllowed(ch){
+ const u=String(ch).toUpperCase();
+ if(!/^[0-9A-F]$/.test(u)) return true;
+ const d=parseInt(u,16);
+ return d < baseRadix();
+}
+function baseAppend(value){
+ const s=String(value);
+ if(s==="." || /[Ee]/.test(s)) return;
+ if([...s].some(ch=>/[0-9A-F]/i.test(ch) && !baseDigitAllowed(ch))) return;
+ add(s);
+}
 function pressButton(b){
  const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
  if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
- if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
- if(alpha && alphaVal!==undefined){if(mode==="BASE" && /^[A-F]$/.test(alphaVal)){add(alphaVal);alpha=false;render();return}add(alphaVal);alpha=false;render();return}
+ if(alpha && alphaVal!==undefined){
+   if(mode==="BASE"){
+     if(baseMode==="HEX" && /^[A-F]$/.test(alphaVal)) add(alphaVal);
+     alpha=false;render();return;
+   }
+   add(alphaVal);alpha=false;render();return;
+ }
  if(shift){
-   if(shiftVal!==undefined){const sv=shiftVal;shift=false;doShift(sv);render();return}
+   if(shiftVal!==undefined){
+     if(mode==="BASE"){
+       const blocked=["x!","pow10","powe","asin","acos","atan","npr","ncr","percent","mminus","sum","drg","round","rand","pi","eng","solve",",","CALC","inv"];
+       const sv=shiftVal;shift=false;
+       if(!blocked.includes(sv)){doShift(sv)}else{render()}
+       return;
+     }
+     const sv=shiftVal;shift=false;doShift(sv);render();return
+   }
    shift=false;render();
  }
  const a=b.dataset.action;
@@ -291,7 +316,9 @@ function pressButton(b){
  else if(a==="log")add("log(");else if(a==="ln")add("ln(");else if(a==="neg")add("−");else if(a==="exp")add("E");else if(a==="dms")add("°′″");
  else if(a==="hyp")add("sinh(");else if(a==="sin")add("sin(");else if(a==="cos")add("cos(");else if(a==="tan")add("tan(");
  else if(a==="rcl")add(String(memory));else if(a==="abs")add("Abs(");else if(a==="mplus"){memory+=ans;render()}
- else if(a===undefined && b.dataset.v!==undefined)add(b.dataset.v);
+ else if(a===undefined && b.dataset.v!==undefined){
+   if(mode==="BASE") baseAppend(b.dataset.v); else add(b.dataset.v);
+ }
 }
 document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>pressButton(b));
 document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>pressButton(b));
