@@ -279,6 +279,7 @@ function doShift(action){
 function pressButton(b){
  const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
  if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
+ if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
  if(mode==="BASE"){
    if(alpha && alphaVal!==undefined){
      if(/^[A-F]$/.test(alphaVal) && baseMode==="HEX"){add(alphaVal);alpha=false;render();}
