@@ -279,7 +279,18 @@ function doShift(action){
 function pressButton(b){
  const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
  if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
- if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
+ if(mode==="BASE"){
+   if(alpha && alphaVal!==undefined){
+     if(/^[A-F]$/.test(alphaVal) && baseMode==="HEX"){add(alphaVal);alpha=false;render();}
+     return;
+   }
+   if(b.dataset.v!==undefined){
+     const v=b.dataset.v, radix=baseRadix();
+     if(/^[0-9]$/.test(v) && Number(v)>=radix) return;
+     if(v===".") return;
+   }
+   if(b.dataset.action!==undefined) return;
+ }
  if(alpha && alphaVal!==undefined){if(mode==="BASE" && /^[A-F]$/.test(alphaVal)){add(alphaVal);alpha=false;render();return}add(alphaVal);alpha=false;render();return}
  if(shift){
    if(shiftVal!==undefined){const sv=shiftVal;shift=false;doShift(sv);render();return}
