@@ -37,7 +37,7 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 <button class="k ctrl down nav" id="down">▼</button><button class="k ctrl convt" id="convt"><span class="sub g">G↔T</span>CONVT</button>
 </div>
 <div class="topfunc">
-<button class="k fn calcKey" data-action="calc"><span class="sub o">Solve</span>CALC</button>
+<button class="k fn calcKey" data-action="calc" data-shift="solve"><span class="sub o">Solve</span>CALC</button>
 <button class="k fn invKey" data-action="inv" data-shift="x!"><span class="sub o">x!</span>x⁻¹</button>
 <button class="k fn integralKey" data-action="integral"><span class="sub o">∫</span>∫</button>
 <button class="k fn engKey" data-action="eng"><span class="sub o">↔ENG</span>ENG</button>
@@ -48,7 +48,7 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 <button class="k fn" data-action="square" data-base="BIN"><span class="sub g">BIN</span>x²</button>
 <button class="k fn" data-action="cube" data-base="OCT"><span class="sub g">OCT</span>x³</button>
 <button class="k fn" data-action="log" data-shift="pow10"><span class="sub o">10ⁿ</span>log</button>
-<button class="k fn" data-action="ln" data-shift="powe"><span class="sub b">eⁿ</span>ln</button>
+<button class="k fn" data-action="ln" data-shift="powe"><span class="sub o">eⁿ</span>ln</button>
 </div>
 <div class="grid6">
 <button class="k fn" data-action="neg" data-alpha="A"><span class="sub b">A</span>(−)</button>
@@ -71,7 +71,7 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 </div>
 <div class="grid5"><button class="k num" data-v="4">4</button><button class="k num" data-v="5">5</button><button class="k num" data-v="6">6</button><button class="k num op" data-v="×" data-shift="npr"><span class="sub o">nPr</span>×</button><button class="k num op" data-v="÷" data-shift="ncr"><span class="sub o">nCr</span>÷</button></div>
 <div class="grid5"><button class="k num" data-v="1">1</button><button class="k num" data-v="2">2</button><button class="k num" data-v="3">3</button><button class="k num op" data-v="+" data-shift="pol"><span class="sub o">Pol(</span>+</button><button class="k num op" data-v="−" data-shift="rec"><span class="sub o">Rec(</span>−</button></div>
-<div class="grid5"><button class="k num" data-v="0" data-shift="round"><span class="sub o">ROUND</span>0</button><button class="k num" data-v="." data-shift="rand"><span class="sub o">Rand i-Rand</span>.</button><button class="k num" data-action="exp" data-shift="pi" data-alpha="e"><span class="sub o">π</span><span class="sub b">e</span>EXP</button><button class="k num" id="ans" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button><button class="k num op" id="equals">=</button></div>
+<div class="grid5"><button class="k num" data-v="0" data-shift="round"><span class="sub o">ROUND</span>0</button><button class="k num" data-v="." data-shift="rand"><span class="sub o">Rand i-Rand</span>.</button><button class="k num" data-action="exp" data-shift="pi" data-alpha="e"><span class="sub o">π</span><span class="sub b">e</span>EXP</button><button class="k num" id="ans" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button><button class="k num op" id="equals" data-shift="pfact"><span class="sub o">PFact</span>=</button></div>
 <div class="overlay" id="overlay"><div class="panel"><h3 id="title">MODE</h3><div id="choices"></div><button class="cancel" id="cancel">CANCEL</button></div></div>
 </div>
 <script>
@@ -273,6 +273,20 @@ function det(a){if(a.length!==a[0].length)throw Error();if(a.length===1)return a
 function inv(a){let n=a.length,m=a.map((r,i)=>r.concat(Array.from({length:n},(_,j)=>i===j?1:0)));if(n!==a[0].length)throw Error();for(let i=0;i<n;i++){let p=i;for(let j=i+1;j<n;j++)if(Math.abs(m[j][i])>Math.abs(m[p][i]))p=j;if(Math.abs(m[p][i])<1e-12)throw Error();[m[i],m[p]]=[m[p],m[i]];let q=m[i][i];m[i]=m[i].map(v=>v/q);for(let j=0;j<n;j++)if(j!==i){q=m[j][i];m[j]=m[j].map((v,k)=>v-q*m[i][k])}}return m.map(r=>r.slice(n))}
 function matrix(n){return field("MATX "+n,[["Matrix rows; columns comma-separated","v","1,2;3,4"]],()=>{let a=$("v").value.split(";").map(r=>r.split(",").map(Number)),z=n==="Det"?det(a):n==="Trn"?trans(a):n==="Inv"?inv(a):n==="Ide"?a.map((r,i)=>r.map((_,j)=>i===j?1:0)):a;$("result").textContent=JSON.stringify(z)})}
 function vector(n){return field("VCTR "+n,[["A","a","1,2,3"],["B","b","4,5,6"]],()=>{let a=$("a").value.split(",").map(Number),b=$("b").value.split(",").map(Number);if(n==="Dot")$("result").textContent=a.reduce((s,v,i)=>s+v*b[i],0);else if(n==="Cross"){let z=[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];$("result").textContent=JSON.stringify(z)}else if(n==="Angle")$("result").textContent=formatNumber(fromRad(Math.acos(a.reduce((s,v,i)=>s+v*b[i],0)/(Math.hypot(...a)*Math.hypot(...b)))));})}
+function primeFactorAnswer(){
+ try{
+   let original=Math.trunc(ans);
+   if(!Number.isInteger(original)||original<=0||original>=10000000000)throw Error();
+   let v=original,parts=[],d=2;
+   while(v>1&&d*d<=v){
+     let e=0;while(v%d===0){v/=d;e++}
+     if(e)parts.push(e===1?String(d):String(d)+"^"+e);
+     d=d===2?3:d+2;
+   }
+   if(v>1)parts.push(String(v));
+   $("result").textContent=parts.join(" × ");
+ }catch(e){$("result").textContent="Math ERROR"}
+}
 function solve(){return field("SOLVE",[["Equation in X","q","x²-5x+6"],["Initial X","x","1"]],()=>{let q=$("q").value.replace(/²/g,"^2"),x=+$("x").value;for(let i=0;i<50;i++){let f=t=>evalExpr(q.replace(/x/g,"("+t+")")),h=1e-6,df=(f(x+h)-f(x-h))/(2*h);if(Math.abs(df)<1e-14)throw Error();let nx=x-f(x)/df;if(Math.abs(nx-x)<1e-10){x=nx;break}x=nx}ans=x;$("result").textContent=formatNumber(x)})}
 $("shift").onclick=()=>{shift=!shift;alpha=false;render()};
 $("alpha").onclick=()=>{alpha=!alpha;shift=false;render()};
@@ -292,7 +306,7 @@ function doShift(action){
  else if(action==="npr")add("P");else if(action==="ncr")add("C");else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="mminus"){memory-=ans;render()}
  else if(action==="sum")$("result").textContent="Σ";else if(action==="drg")$("result").textContent="DRG▶";
  else if(action==="round")$("result").textContent=Math.round(ans);else if(action==="rand"){ans=Math.random();$("result").textContent=ans.toFixed(3)}
- else if(action==="pi")add("π");else if(action==="eng"){if(ans===0)$("result").textContent="0";else{const p=Math.floor(Math.log10(Math.abs(ans))/3)*3;$("result").textContent=(ans/10**p)+"×10^"+p}}
+ else if(action==="pi")add("π");else if(action==="pfact"){primeFactorAnswer();}else if(action==="eng"){if(ans===0)$("result").textContent="0";else{const p=Math.floor(Math.log10(Math.abs(ans))/3)*3;$("result").textContent=(ans/10**p)+"×10^"+p}}
  else if(action==="solve")solve();else if(action==="inv")add("!");
  else if(action==="," )add(",");
  else if(action==="CALC")solve();
