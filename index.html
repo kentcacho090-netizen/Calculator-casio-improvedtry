@@ -78,12 +78,12 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
-let expr="",ans=0,memory=0,shift=false,alpha=false,mode="COMP",angle="DEG",io="MATH",display="NORM1",fractionMode="d/c",history=[],histPos=-1,baseMode="DEC";
+let expr="",ans=0,memory=0,shift=false,alpha=false,mode="COMP",angle="DEG",io="MATH",display="NORM1",fractionMode="d/c",history=[],histPos=-1,baseMode="DEC",baseBlocks=[],baseBlockIndex=0;
 const V={A:0,B:0,C:0,D:0,X:0,Y:0,M:0};
 const rad=x=>angle==="DEG"?x*Math.PI/180:angle==="GRAD"?x*Math.PI/200:x;
 const fromRad=x=>angle==="DEG"?x*180/Math.PI:angle==="GRAD"?x*200/Math.PI:x;
 function render(){
-  $("status").textContent=(shift?"S ":"")+(alpha?"A ":"")+(memory!==0?"M ":"")+mode+(mode==="BASE"?" "+baseMode:" "+angle)+(io==="LINE"?" LINE":"")+" "+(display==="FIX"?" FIX":display==="SCI"?" SCI":"");
+  $("status").textContent=(shift?"S ":"")+(alpha?"A ":"")+(memory!==0?"M ":"")+mode+(mode==="BASE"?" "+baseMode:" "+angle)+(io==="LINE"?" LINE":"")+" "+(display==="FIX"?" FIX":display==="SCI"?" SCI":"")+(mode==="BASE"&&baseBlocks.length>1?"  "+(baseBlockIndex+1)+"/"+baseBlocks.length:"");
   $("expr").textContent=expr;
   $("shift").classList.toggle("activeS",shift);$("alpha").classList.toggle("activeA",alpha);
 }
@@ -154,7 +154,7 @@ function baseCalculate(){
    const v=Function("return ("+js+")")();
    if(typeof v!=="number"||!Number.isFinite(v)||!Number.isInteger(v))throw Error();
    ans=v;history.unshift({e:expr,r:v});history=history.slice(0,20);histPos=-1;
-   $("result").textContent=baseFormat(v);expr="";render();
+   const rendered=baseFormat(v);\n   if((baseMode==="BIN"||baseMode==="OCT") && rendered.replace(/^−/,"").length>8){\n     const neg=rendered.startsWith("−"); const digits=neg?rendered.slice(1):rendered;\n     baseBlocks=[]; for(let i=digits.length;i>0;i-=8) baseBlocks.unshift(digits.slice(Math.max(0,i-8),i));\n     if(neg) baseBlocks[0]="−"+baseBlocks[0]; baseBlockIndex=0; $("result").textContent=baseBlocks[0];\n   } else { baseBlocks=[rendered]; baseBlockIndex=0; $("result").textContent=rendered; }\n   expr="";render();
  }catch(e){$("result").textContent="Math ERROR"}
 }
 function selectBase(next){
@@ -257,7 +257,7 @@ $("shift").onclick=()=>{shift=!shift;alpha=false;render()};
 $("alpha").onclick=()=>{alpha=!alpha;shift=false;render()};
 $("mode").onclick=()=>shift?(shift=false,setup()):modeMenu();
 $("apps").onclick=apps;$("cancel").onclick=()=>$("overlay").classList.remove("show");
-$("up").onclick=()=>{};$("down").onclick=()=>{};
+$("up").onclick=()=>cycleBaseBlock(-1);$("down").onclick=()=>cycleBaseBlock(1);
 $("left").onclick=()=>{if(history.length){histPos=Math.min(history.length-1,histPos+1);expr=history[histPos].e;render()}};
 $("right").onclick=()=>{if(history.length){histPos=Math.max(-1,histPos-1);expr=histPos<0?"":history[histPos].e;render()}};
 $("on").onclick=clearEntry;$("ca").onclick=allClear;$("del").onclick=()=>{expr=expr.slice(0,-1);render()};
