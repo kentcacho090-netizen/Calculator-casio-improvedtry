@@ -352,8 +352,12 @@ function b3DmsToDecimal(s){return s.replace(/(\d+(?:\.\d+)?)°(?:\s*(\d+(?:\.\d+
 function b3Pol(x,y){return Math.hypot(x,y);}
 function b3Rec(r,t){return r*Math.cos(rad(t));}
 function b3Calculate(){
- try{let source=b3DmsToDecimal(expr).replace(/Pol\(([^,]+),([^\)]+)\)/g,(m,x,y)=>String(b3Pol(evalExpr(x),evalExpr(y)))).replace(/Rec\(([^,]+),([^\)]+)\)/g,(m,r,t)=>String(b3Rec(evalExpr(r),evalExpr(t))));expr=source;calculate();}
- catch(e){$("result").textContent="Math ERROR"}
+ try{
+   if(!expr.trim())return;
+   let source=b3DmsToDecimal(expr).replace(/Pol\(([^,]+),([^\)]+)\)/g,(m,x,y)=>String(b3Pol(evalExpr(x),evalExpr(y)))).replace(/Rec\(([^,]+),([^\)]+)\)/g,(m,r,t)=>String(b3Rec(evalExpr(r),evalExpr(t))));
+   expr=source;
+   calculate();
+ }catch(e){$("result").textContent="Math ERROR"}
 }
 function b3VariableButton(b){
  const old=b.onclick;
