@@ -154,8 +154,28 @@ function baseCalculate(){
    const v=Function("return ("+js+")")();
    if(typeof v!=="number"||!Number.isFinite(v)||!Number.isInteger(v))throw Error();
    ans=v;history.unshift({e:expr,r:v});history=history.slice(0,20);histPos=-1;
-   const rendered=baseFormat(v);\n   if((baseMode==="BIN"||baseMode==="OCT") && rendered.replace(/^−/,"").length>8){\n     const neg=rendered.startsWith("−"); const digits=neg?rendered.slice(1):rendered;\n     baseBlocks=[]; for(let i=digits.length;i>0;i-=8) baseBlocks.unshift(digits.slice(Math.max(0,i-8),i));\n     if(neg) baseBlocks[0]="−"+baseBlocks[0]; baseBlockIndex=0; $("result").textContent=baseBlocks[0];\n   } else { baseBlocks=[rendered]; baseBlockIndex=0; $("result").textContent=rendered; }\n   expr="";render();
+   const rendered=baseFormat(v);
+   if((baseMode==="BIN"||baseMode==="OCT") && rendered.replace(/^−/,"").length>8){
+     const neg=rendered.startsWith("−");
+     const digits=neg?rendered.slice(1):rendered;
+     baseBlocks=[];
+     for(let i=digits.length;i>0;i-=8) baseBlocks.unshift(digits.slice(Math.max(0,i-8),i));
+     if(neg) baseBlocks[0]="−"+baseBlocks[0];
+     baseBlockIndex=0;
+     $("result").textContent=baseBlocks[0];
+   } else {
+     baseBlocks=[rendered];
+     baseBlockIndex=0;
+     $("result").textContent=rendered;
+   }
+   expr="";render();
  }catch(e){$("result").textContent="Math ERROR"}
+}
+function cycleBaseBlock(direction){
+ if(mode!=="BASE" || baseBlocks.length<2)return;
+ baseBlockIndex=(baseBlockIndex+direction+baseBlocks.length)%baseBlocks.length;
+ $("result").textContent=baseBlocks[baseBlockIndex];
+ render();
 }
 function selectBase(next){
  baseMode=next;if(mode!=="BASE")mode="BASE";
