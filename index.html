@@ -282,7 +282,7 @@ $("left").onclick=()=>{if(history.length){histPos=Math.min(history.length-1,hist
 $("right").onclick=()=>{if(history.length){histPos=Math.max(-1,histPos-1);expr=histPos<0?"":history[histPos].e;render()}};
 $("on").onclick=clearEntry;$("ca").onclick=allClear;$("del").onclick=()=>{expr=expr.slice(0,-1);render()};
 $("equals").onclick=calculate;$("ans").onclick=()=>add("Ans");
-$("convt").onclick=()=>field("CONVT",[["Value","v","5"]],()=>{$("result").textContent=$("v").value});
+$("convt").onclick=()=>field("CONVT",[["Value","v","5"],["From unit","from","ft"],["To unit","to","m"]],()=>{const factors={mm:0.001,cm:0.01,m:1,km:1000,in:0.0254,ft:0.3048,yd:0.9144,mi:1609.344,g:0.001,kg:1,lb:0.45359237,oz:0.028349523125,s:1,min:60,h:3600,day:86400,L:0.001,mL:0.000001};const aliases={meter:"m",meters:"m",metre:"m",metres:"m",millimeter:"mm",millimeters:"mm",centimeter:"cm",centimeters:"cm",kilometer:"km",kilometers:"km",inch:"in",inches:"in",foot:"ft",feet:"ft",yard:"yd",yards:"yd",mile:"mi",miles:"mi",gram:"g",grams:"g",kilogram:"kg",kilograms:"kg",pound:"lb",pounds:"lb",ounce:"oz",ounces:"oz",liter:"L",liters:"L",litre:"L",litres:"L"};const norm=u=>aliases[String(u).trim().toLowerCase()]||String(u).trim();const from=norm($("#from").value),to=norm($("#to").value),v=+$("v").value;if(!(from in factors)||!(to in factors)||!Number.isFinite(v))throw Error();const out=v*factors[from]/factors[to];ans=out;$("#result").textContent=formatNumber(out)});
 
 function doShift(action){
  if(action==="asin")add("sin⁻¹(");else if(action==="acos")add("cos⁻¹(");else if(action==="atan")add("tan⁻¹(");
@@ -310,11 +310,6 @@ function baseAppend(value){
 }
 function pressButton(b){
  const alphaVal=b.dataset.alpha, shiftVal=b.dataset.shift;
- if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
- if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
- if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
- if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
- if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
  if(mode==="BASE" && b.dataset.base){selectBase(b.dataset.base);return;}
 
  if(alpha && alphaVal!==undefined){
