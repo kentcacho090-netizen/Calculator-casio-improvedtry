@@ -67,11 +67,11 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 <button class="k fn" id="ansTop" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button>
 </div>
 <div class="grid5">
-<button class="k num" data-v="7" data-alpha="7">7</button><button class="k num" data-v="8" data-alpha="8">8</button><button class="k num" data-v="9" data-alpha="9">9</button><button class="k num" id="del"><span class="sub o">CLR</span>DEL</button><button class="k num red" id="ca"><span class="sub o">OFF</span>CA</button>
+<button class="k num" data-v="7">7</button><button class="k num" data-v="8">8</button><button class="k num" data-v="9">9</button><button class="k num" id="del"><span class="sub o">CLR</span>DEL</button><button class="k num red" id="ca"><span class="sub o">OFF</span>CA</button>
 </div>
-<div class="grid5"><button class="k num" data-v="4" data-alpha="4">4</button><button class="k num" data-v="5" data-alpha="5">5</button><button class="k num" data-v="6" data-alpha="6">6</button><button class="k num op" data-v="×" data-shift="npr"><span class="sub o">nPr</span>×</button><button class="k num op" data-v="÷" data-shift="ncr"><span class="sub o">nCr</span>÷</button></div>
-<div class="grid5"><button class="k num" data-v="1" data-alpha="1">1</button><button class="k num" data-v="2" data-alpha="2">2</button><button class="k num" data-v="3" data-alpha="3">3</button><button class="k num op" data-v="+" data-shift="pol"><span class="sub o">Pol(</span>+</button><button class="k num op" data-v="−" data-shift="rec"><span class="sub o">Rec(</span>−</button></div>
-<div class="grid5"><button class="k num" data-v="0" data-alpha="0" data-shift="round"><span class="sub o">ROUND</span>0</button><button class="k num" data-v="." data-shift="rand"><span class="sub o">Rand i-Rand</span>.</button><button class="k num" data-action="exp" data-shift="pi" data-alpha="e"><span class="sub o">π</span><span class="sub b" style="top:-5px">e</span>EXP</button><button class="k num" id="ans" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button><button class="k num op" id="equals">=</button></div>
+<div class="grid5"><button class="k num" data-v="4">4</button><button class="k num" data-v="5">5</button><button class="k num" data-v="6">6</button><button class="k num op" data-v="×" data-shift="npr"><span class="sub o">nPr</span>×</button><button class="k num op" data-v="÷" data-shift="ncr"><span class="sub o">nCr</span>÷</button></div>
+<div class="grid5"><button class="k num" data-v="1">1</button><button class="k num" data-v="2">2</button><button class="k num" data-v="3">3</button><button class="k num op" data-v="+" data-shift="pol"><span class="sub o">Pol(</span>+</button><button class="k num op" data-v="−" data-shift="rec"><span class="sub o">Rec(</span>−</button></div>
+<div class="grid5"><button class="k num" data-v="0" data-shift="round"><span class="sub o">ROUND</span>0</button><button class="k num" data-v="." data-shift="rand"><span class="sub o">Rand i-Rand</span>.</button><button class="k num" data-action="exp" data-shift="pi" data-alpha="e"><span class="sub o">π</span><span class="sub b" style="top:-5px">e</span>EXP</button><button class="k num" id="ans" data-shift="drg"><span class="sub b">DRG▶</span>Ans</button><button class="k num op" id="equals">=</button></div>
 <div class="overlay" id="overlay"><div class="panel"><h3 id="title">MODE</h3><div id="choices"></div><button class="cancel" id="cancel">CANCEL</button></div></div>
 </div>
 <script>
@@ -370,6 +370,16 @@ function b3VariableButton(b){
 const b3Rcl=document.querySelector('[data-action="rcl"]');
 if(b3Rcl){b3Rcl.onclick=()=>{if(shift){b3Store=true;b3Recall=false;shift=false;render();return}b3Recall=true;render();};}
 for(const b of document.querySelectorAll('[data-alpha]')) b3VariableButton(b);
+for(const b of document.querySelectorAll('[data-v]')){
+ const key=b.dataset.v;
+ if(!/^[0-9]$/.test(key))continue;
+ const old=b.onclick;
+ b.onclick=()=>{
+   if(b3Store){V[key]=ans;b3Store=false;render();return}
+   if(b3Recall){add(String(V[key]??0));b3Recall=false;render();return}
+   old();
+ };
+}
 const b3Plus=document.querySelector('[data-v="+"]');
 if(b3Plus){const old=b3Plus.onclick;b3Plus.onclick=()=>{if(shift){add('Pol(');shift=false;render();return}old();};}
 const b3Minus=document.querySelector('[data-v="−"]');
