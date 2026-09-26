@@ -75,12 +75,10 @@ click('[data-v="2"]', '2');
 document.getElementById('equals').click();
 document.getElementById('shift').click();
 click('[data-action="rcl"]', 'STO');
-document.getElementById('alpha').click();
-click('[data-alpha="7"]', 'Alpha 7');
+click('[data-v="7"]', 'variable 7');
 document.getElementById('on').click();
 click('[data-action="rcl"]', 'RCL');
-document.getElementById('alpha').click();
-click('[data-alpha="7"]', 'Alpha 7 recall');
+click('[data-v="7"]', 'variable 7 recall');
 document.getElementById('equals').click();
 assertEq(result(), '42', 'numeric memory variable 7');
 
