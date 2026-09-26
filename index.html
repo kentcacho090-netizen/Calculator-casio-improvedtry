@@ -366,6 +366,7 @@ function b3Pol(x,y){return Math.hypot(x,y);}
 function b3Rec(r,t){return r*Math.cos(rad(t));}
 function b3Calculate(){
  try{
+   if(shift){shift=false;primeFactorAnswer();render();return}
    if(!expr.trim()){b3Recall=false;b3Store=false;return}
    let source=b3DmsToDecimal(expr).replace(/Pol\(([^,]+),([^\)]+)\)/g,(m,x,y)=>String(b3Pol(evalExpr(x),evalExpr(y)))).replace(/Rec\(([^,]+),([^\)]+)\)/g,(m,r,t)=>String(b3Rec(evalExpr(r),evalExpr(t))));
    expr=source;
