@@ -140,9 +140,14 @@ function evalExpr(s){
 }
 function baseRadix(){return baseMode==="HEX"?16:baseMode==="BIN"?2:baseMode==="OCT"?8:10}
 function baseFormat(v){
- const neg=v<0;let n=Math.abs(Math.trunc(v));
- let out=baseMode==="HEX"?n.toString(16).toUpperCase():baseMode==="BIN"?n.toString(2):baseMode==="OCT"?n.toString(8):String(n);
- return neg?"−"+out:out;
+ let n=Math.trunc(v);
+ if(!Number.isFinite(n)||!Number.isInteger(n))throw Error();
+ if(baseMode==="DEC")return String(n);
+ n=((n%4294967296)+4294967296)%4294967296;
+ if(baseMode==="HEX")return n.toString(16).toUpperCase().padStart(8,"0");
+ if(baseMode==="BIN")return n.toString(2).padStart(32,"0");
+ if(baseMode==="OCT")return n.toString(8).padStart(11,"0");
+ return String(n);
 }
 function baseCalculate(){
  try{
