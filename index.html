@@ -13,7 +13,8 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 .lcd{height:102px;margin:2px 5px 7px;background:#dce6d7;border:5px solid #111;border-radius:8px;padding:5px 8px;font-family:monospace;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
 .status{height:14px;font-size:10px;white-space:nowrap}.expr{height:25px;text-align:right;white-space:nowrap;overflow:hidden}.result{height:28px;text-align:right;font-size:22px;white-space:nowrap;overflow:hidden}
 .controls{height:104px;position:relative;margin:0 3px}.k{position:relative;border:2px solid #222;border-radius:7px;background:linear-gradient(#fdfdfb,#e5e5df);color:#171717;font-weight:700;box-shadow:0 2px 2px #0005;touch-action:manipulation;cursor:pointer}.k:active{transform:scale(.96);filter:brightness(.9)}
-.sub{position:absolute;left:1px;right:1px;font-size:8px;text-align:center;white-space:nowrap;overflow:visible;line-height:9px;font-weight:800;z-index:4;pointer-events:none;text-shadow:0 0 1px rgba(255,255,255,.8)}.sub.o{top:-18px;color:#c98200}.sub.b{top:-9px;color:#5b3fb5}.sub.g{top:-18px;color:#258a45}.red{color:#d13b36}
+.sub{position:absolute;left:1px;right:1px;font-size:8px;text-align:center;white-space:nowrap;overflow:visible;line-height:9px;font-weight:800;z-index:4;pointer-events:none;text-shadow:0 0 1px rgba(255,255,255,.8)}.sub.o{top:-18px;color:#c98200}.sub.b{top:-9px;color:#5b3fb5}.sub.g{top:-18px;color:#258a45}
+.field{display:grid;grid-template-columns:1fr 1.35fr;gap:6px;align-items:center;margin:6px 0;font-size:12px}.field input{width:100%;padding:6px;border:1px solid #888;border-radius:4px;background:#fff;font:inherit}.red{color:#d13b36}
 .dark{background:#3b3e3d;color:#fff}.shift,.alpha{background:#222;color:#fff}.shift{color:#c98200}.alpha{color:#5b3fb5}.blankkey{font-size:0}.nav{background:#35393c;color:#fff;border-radius:50%;font-size:16px}.activeS{box-shadow:inset 0 0 0 2px #e5a027,0 0 8px #e5a02788}.activeA{box-shadow:inset 0 0 0 2px #7563a8,0 0 8px #7563a888}
 .ctrl{position:absolute;width:16%;height:40px}.c1{left:0;top:0}.c2{left:18.5%;top:0}.c3{left:42%;top:0}.c4{right:16%;top:0}.c5{right:0;top:0}.apps{left:0;top:48px}.left{left:31%;top:40px}.right{left:51%;top:40px}.down{left:42%;top:59px}.convt{right:0;top:48px}
 .topfunc{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:4px 3px 15px;height:50px}.topfunc .calcKey{grid-column:1}.topfunc .invKey{grid-column:2}.topfunc .integralKey{grid-column:5}.topfunc .engKey{grid-column:6}
@@ -42,11 +43,11 @@ body{min-height:100vh;padding:14px 8px;display:flex;justify-content:center}
 <button class="k fn engKey" data-action="eng"><span class="sub o">↔ENG</span>ENG</button>
 </div>
 <div class="grid6">
-<button class="k fn" data-v="÷" data-base="DEC"><span class="sub g">DEC</span>÷</button>
+<button class="k fn" data-action="fraction" data-shift="fraction"><span class="sub b">d/c↔a b/c</span>F↔D</button>
 <button class="k fn" data-action="sqrt" data-base="HEX"><span class="sub g">HEX</span>√</button>
-<button class="k fn" data-action="cube" data-base="OCT"><span class="sub g">OCT</span>x³</button>
 <button class="k fn" data-action="square" data-base="BIN"><span class="sub g">BIN</span>x²</button>
-<button class="k fn" data-action="log" data-shift="pow10"><span class="sub g">10ⁿ</span>log</button>
+<button class="k fn" data-action="cube" data-base="OCT"><span class="sub g">OCT</span>x³</button>
+<button class="k fn" data-action="log" data-shift="pow10"><span class="sub o">10ⁿ</span>log</button>
 <button class="k fn" data-action="ln" data-shift="powe"><span class="sub b">eⁿ</span>ln</button>
 </div>
 <div class="grid6">
@@ -215,7 +216,7 @@ function setup(){
 function modeMenu(){menu("MODE",["COMP","CPLX","STAT","BASE","EQN","TABLE","MATX","VCTR"],i=>{mode=["COMP","CPLX","STAT","BASE","EQN","TABLE","MATX","VCTR"][i];expr="";})}
 function apps(){
  const map={
-  COMP:["π","Σ","Max","Min","Q…r","Mod","LCM","GCD","nPr","nCr","!","Rand","i-Rand","Pol","Rec","Prime","d/dx","∫"],
+  COMP:["π","Σ","∏","Max","Min","Q…r","Mod","LCM","GCD","nPr","nCr","!","Rand","i-Rand","Pol","Rec","Prime","d/dx","∫"],
   CPLX:["r∠θ","a+bi","Arg","Conjg","Real","Imag"],
   STAT:["Type","Data","Edit","S-SUM","S-VAR","S-PTS","Distr","Reg"],
   BASE:["and","or","Xor","Xnor","Not","Neg","DEC","HEX","BIN","OCT"],
@@ -280,12 +281,12 @@ $("up").onclick=()=>cycleBaseBlock(-1);$("down").onclick=()=>cycleBaseBlock(1);
 $("left").onclick=()=>{if(history.length){histPos=Math.min(history.length-1,histPos+1);expr=history[histPos].e;render()}};
 $("right").onclick=()=>{if(history.length){histPos=Math.max(-1,histPos-1);expr=histPos<0?"":history[histPos].e;render()}};
 $("on").onclick=clearEntry;$("ca").onclick=allClear;$("del").onclick=()=>{expr=expr.slice(0,-1);render()};
-$("equals").onclick=calculate;$("ans").onclick=()=>add("Ans");$("ansTop").onclick=()=>add("Ans");
+$("equals").onclick=calculate;$("ans").onclick=()=>add("Ans");
 $("convt").onclick=()=>field("CONVT",[["Value","v","5"]],()=>{$("result").textContent=$("v").value});
 
 function doShift(action){
  if(action==="asin")add("sin⁻¹(");else if(action==="acos")add("cos⁻¹(");else if(action==="atan")add("tan⁻¹(");
- else if(action==="fraction")$("result").textContent=fraction(ans);
+ else if(action==="fraction"){fractionMode=fractionMode==="d/c"?"a b/c":"d/c";$("result").textContent=fraction(ans);}
  else if(action==="pow10")add("10^(");else if(action==="powe")add("e^(");
  else if(action==="npr")add("P");else if(action==="ncr")add("C");else if(action==="x!")add("!");else if(action==="percent")add("%");else if(action==="mminus"){memory-=ans;render()}
  else if(action==="sum")$("result").textContent="Σ";else if(action==="drg")$("result").textContent="DRG▶";
@@ -336,7 +337,7 @@ function pressButton(b){
    shift=false;render();
  }
  const a=b.dataset.action;
- if(a==="calc")solve();else if(a==="inv")add("1/(");else if(a==="fraction")$("result").textContent=fraction(ans);
+ if(a==="calc")calculate();else if(a==="inv")add("1/(");else if(a==="fraction")$("result").textContent=fraction(ans);
  else if(a==="eng")doShift("eng");else if(a==="sqrt")add("√(");else if(a==="square")add("^2");else if(a==="cube")add("^3");
  else if(a==="log")add("log(");else if(a==="ln")add("ln(");else if(a==="neg")add("−");else if(a==="exp")add("E");else if(a==="dms")add("°′″");
  else if(a==="hyp")add("sinh(");else if(a==="sin")add("sin(");else if(a==="cos")add("cos(");else if(a==="tan")add("tan(");
