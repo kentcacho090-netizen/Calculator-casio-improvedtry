@@ -68,5 +68,21 @@ click('[data-action="rcl"]', 'RCL');
 document.getElementById('equals').click();
 assertEq(result(), '5', 'M+/RCL');
 
+// Numeric memory variable: store 42 in variable 7, then recall it with Alpha+7.
+document.getElementById('on').click();
+click('[data-v="4"]', '4');
+click('[data-v="2"]', '2');
+document.getElementById('equals').click();
+document.getElementById('shift').click();
+click('[data-action="rcl"]', 'STO');
+document.getElementById('alpha').click();
+click('[data-alpha="7"]', 'Alpha 7');
+document.getElementById('on').click();
+click('[data-action="rcl"]', 'RCL');
+document.getElementById('alpha').click();
+click('[data-alpha="7"]', 'Alpha 7 recall');
+document.getElementById('equals').click();
+assertEq(result(), '42', 'numeric memory variable 7');
+
 dom.window.close();
 console.log('F-789SGA Batch 1 runtime smoke tests passed');
