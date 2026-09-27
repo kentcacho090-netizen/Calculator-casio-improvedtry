@@ -1,0 +1,72 @@
+name: Apply EQN cubic quartic fix
+on:
+  push:
+    paths:
+      - .github/workflows/apply-eqn-fix.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch equation solver
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path("index.html")
+          s = p.read_text()
+          old = '''function equation(n){let d=n==="Quad"?2:n==="Cubic"?3:n==="Quart"?4:2;return field("EQN "+n,[["Coefficients","c",d===2?"1,-5,6":"1,0,0,-1"]],()=>{let c=$("c").value.split(",").map(Number);if(d===2){let D=c[1]**2-4*c[0]*c[2];if(D<0)return $("result").textContent="Complex roots";$("result").textContent="x1="+formatNumber((-c[1]+Math.sqrt(D))/(2*c[0]))+"\\n"+"x2="+formatNumber((-c[1]-Math.sqrt(D))/(2*c[0]))}else $("result").textContent="Polynomial degree "+d+" accepted; numeric root pass pending"})}'''
+          new = r'''function equation(n){
+          const d=n==="Quad"?2:n==="Cubic"?3:n==="Quart"?4:2;
+          return field("EQN "+n,[["Coefficients","c",d===2?"1,-5,6":d===3?"5,2,-2,1":"1,0,0,-1"]],()=>{
+            try{
+              const c=$("c").value.split(",").map(Number);
+              if(c.length!==d+1||c.some(v=>!Number.isFinite(v))||Math.abs(c[0])<1e-15)throw Error();
+              if(d===2){
+                const D=c[1]**2-4*c[0]*c[2];
+                if(D<0)throw Error();
+                const x1=(-c[1]+Math.sqrt(D))/(2*c[0]);
+                const x2=(-c[1]-Math.sqrt(D))/(2*c[0]);
+                ans=x1;
+                $("result").textContent="x1="+formatNumber(x1)+"\\n"+"x2="+formatNumber(x2);
+                return;
+              }
+              const evalPoly=z=>{let r=0;for(const a of c)r=r*z+a;return r};
+              const radius=1+Math.max(...c.slice(1).map(v=>Math.abs(v/c[0])));
+              let z=Array.from({length:d},(_,k)=>radius*Math.cos(2*Math.PI*k/d)+radius*Math.sin(2*Math.PI*k/d)*Math.sqrt(-1));
+              for(let iter=0;iter<200;iter++){
+                let maxDelta=0;
+                for(let i=0;i<d;i++){
+                  let den=1;
+                  for(let j=0;j<d;j++)if(i!==j)den*=z[i]-z[j];
+                  if(Math.abs(den)<1e-14)continue;
+                  const delta=evalPoly(z[i])/den;
+                  z[i]-=delta;
+                  maxDelta=Math.max(maxDelta,Math.abs(delta));
+                }
+                if(maxDelta<1e-12)break;
+              }
+              const fmtComplex=(q)=>{
+                const re=Math.abs(q.real)<5e-10?0:q.real;
+                const im=Math.abs(q.imag)<5e-10?0:q.imag;
+                if(im===0)return formatNumber(re);
+                return formatNumber(re)+(im<0?" - ":" + ")+formatNumber(Math.abs(im))+"i";
+              };
+              z.sort((a,b)=>Math.abs(a.imag)-Math.abs(b.imag)||a.real-b.real);
+              ans=z[0].real;
+              $("result").textContent=z.map((q,i)=>"x"+(i+1)+"="+fmtComplex({real:q.real,imag:q.imag})).join("\\n");
+            }catch(e){$("result").textContent="Math ERROR"}
+          })
+        }'''
+          if old not in s:
+              raise SystemExit("target equation function not found; refusing to modify file")
+          p.write_text(s.replace(old,new,1))
+      - name: Commit fix and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/apply-eqn-fix.yml
+          git add index.html .github/workflows/apply-eqn-fix.yml
+          git commit -m "Implement cubic and quartic equation solving"
+          git push
