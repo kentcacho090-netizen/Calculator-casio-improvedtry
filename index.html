@@ -271,7 +271,59 @@ function base(n){
 }
 function statistics(n){if(n==="Type")return menu("STAT TYPE",["SD","Lin","Quad","Log","e EXP","ab EXP","Pwr","Inv"],()=>{});if(n==="Data"||n==="Edit")return field("STAT DATA",[["x","x","75,85,90,77,79"],["y","y","38,54,59,40,38"]],()=>{statX=$("x").value.split(",").map(Number);statY=$("y").value.split(",").map(Number);$("result").textContent=statX.length+" DATA"});if(n==="S-SUM"||n==="S-VAR"){if(!statX.length)return $("result").textContent="NO DATA";let s=statX.reduce((a,b)=>a+b,0),m=s/statX.length,ss=statX.reduce((a,b)=>a+(b-m)**2,0);$("result").textContent=n==="S-SUM"?"Σx="+s+"\\nΣx²="+statX.reduce((a,b)=>a+b*b,0):"x̄="+m+"\\nsx="+Math.sqrt(ss/(statX.length-1))+"\\nσx="+Math.sqrt(ss/statX.length);return}if(n==="S-PTS")return $("result").textContent=statX.length?"n="+statX.length:"NO DATA";if(n==="Reg"){if(!statX.length)return $("result").textContent="NO DATA";let N=Math.min(statX.length,statY.length),sx=0,sy=0,sxx=0,sxy=0,syy=0;for(let i=0;i<N;i++){sx+=statX[i];sy+=statY[i];sxx+=statX[i]**2;sxy+=statX[i]*statY[i];syy+=statY[i]**2}let B=(N*sxy-sx*sy)/(N*sxx-sx*sx),A=(sy-B*sx)/N,r=(N*sxy-sx*sy)/Math.sqrt((N*sxx-sx*sx)*(N*syy-sy*sy));$("result").textContent="A="+A+"\\nB="+B+"\\nr="+r;return}if(n==="Distr")return field("Distribution",[["t","t","0"]],()=>{let t=+$("t").value,p=.5*(1+erf(t/Math.sqrt(2)));$("result").textContent="P="+p+"\\nQ="+(1-p)+"\\nR="+Math.abs(2*p-1)})}
 function erf(x){let s=x<0?-1:1;x=Math.abs(x);let t=1/(1+.3275911*x);return s*(1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x))}
-function equation(n){let d=n==="Quad"?2:n==="Cubic"?3:n==="Quart"?4:2;return field("EQN "+n,[["Coefficients","c",d===2?"1,-5,6":"1,0,0,-1"]],()=>{let c=$("c").value.split(",").map(Number);if(d===2){let D=c[1]**2-4*c[0]*c[2];if(D<0)return $("result").textContent="Complex roots";$("result").textContent="x1="+formatNumber((-c[1]+Math.sqrt(D))/(2*c[0]))+"\\nx2="+formatNumber((-c[1]-Math.sqrt(D))/(2*c[0]))}else $("result").textContent="Polynomial degree "+d+" accepted; numeric root pass pending"})}
+function equation(n){
+  const d=n==="Quad"?2:n==="Cubic"?3:n==="Quart"?4:2;
+  return field("EQN "+n,[["Coefficients","c",d===2?"1,-5,6":d===3?"5,2,-2,1":"1,0,0,-1"]],()=>{
+    try{
+      const c=$("c").value.split(",").map(Number);
+      if(c.length!==d+1||c.some(v=>!Number.isFinite(v))||Math.abs(c[0])<1e-15)throw Error();
+      if(d===2){
+        const D=c[1]**2-4*c[0]*c[2];
+        if(D<0)throw Error();
+        const x1=(-c[1]+Math.sqrt(D))/(2*c[0]);
+        const x2=(-c[1]-Math.sqrt(D))/(2*c[0]);
+        ans=x1;
+        $("result").textContent="x1="+formatNumber(x1)+"\\n"+"x2="+formatNumber(x2);
+        return;
+      }
+      const evalPoly=z=>{let r=0;for(const a of c)r=r*z+a;return r};
+      const radius=1+Math.max(...c.slice(1).map(v=>Math.abs(v/c[0])));
+      let z=Array.from({length:d},(_,k)=>{
+        const a=2*Math.PI*k/d;
+        return {real:radius*Math.cos(a),imag:radius*Math.sin(a)};
+      });
+      for(let iter=0;iter<200;iter++){
+        let maxDelta=0;
+        for(let i=0;i<d;i++){
+          const zi={real:z[i].real,imag:z[i].imag};
+          let pr={real:0,imag:0};
+          for(const a of c){
+            pr={real:pr.real*zi.real-pr.imag*zi.imag+a,imag:pr.real*zi.imag+pr.imag*zi.real};
+          }
+          let den={real:1,imag:0};
+          for(let j=0;j<d;j++)if(i!==j){
+            const dr=z[i].real-z[j].real,di=z[i].imag-z[j].imag;
+            den={real:den.real*dr-den.imag*di,imag:den.real*di+den.imag*dr};
+          }
+          const den2=den.real*den.real+den.imag*den.imag;
+          if(den2<1e-28)continue;
+          const delta={real:(pr.real*den.real+pr.imag*den.imag)/den2,imag:(pr.imag*den.real-pr.real*den.imag)/den2};
+          z[i].real-=delta.real;z[i].imag-=delta.imag;
+          maxDelta=Math.max(maxDelta,Math.hypot(delta.real,delta.imag));
+        }
+        if(maxDelta<1e-12)break;
+      }
+      const fmtComplex=q=>{
+        const re=Math.abs(q.real)<5e-10?0:q.real, im=Math.abs(q.imag)<5e-10?0:q.imag;
+        if(im===0)return formatNumber(re);
+        return formatNumber(re)+(im<0?" - ":" + ")+formatNumber(Math.abs(im))+"i";
+      };
+      z.sort((a,b)=>Math.abs(a.imag)-Math.abs(b.imag)||a.real-b.real);
+      ans=z[0].real;
+      $("result").textContent=z.map((q,i)=>"x"+(i+1)+"="+fmtComplex(q)).join("\\n");
+    }catch(e){$("result").textContent="Math ERROR"}
+  })
+}
 function table(n){return field("TABLE",[["f(x)","f","x²+3x-2"],["g(x)","g",""],["Start","s","1"],["End","e","5"],["Step","st","1"]],()=>{let f=$("f").value.replace(/x/g,"("+0+")").replace(/²/g,"^2"),g=$("g").value,s=+$("s").value,e=+$("e").value,st=+$("st").value,out="x   f(x)"+(g?"   g(x)":"");for(let x=s,i=0;x<=e&&i<30;i++,x+=st){let fx=evalExpr($("f").value.replace(/x/g,"("+x+")").replace(/²/g,"^2"));out+="\\n"+x+"   "+fx;if(g)out+="   "+evalExpr(g.replace(/x/g,"("+x+")"))}$("result").textContent=out})}
 function trans(a){return a[0].map((_,j)=>a.map(r=>r[j]))}
 function det(a){if(a.length!==a[0].length)throw Error();if(a.length===1)return a[0][0];if(a.length===2)return a[0][0]*a[1][1]-a[0][1]*a[1][0];return a[0].reduce((s,v,j)=>s+(-1)**j*v*det(a.slice(1).map(r=>r.filter((_,k)=>k!==j))),0)}
